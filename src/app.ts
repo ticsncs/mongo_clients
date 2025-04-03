@@ -13,5 +13,5 @@ app.use(cors());
 app.use("/api", dataRoutes);
 
 app.listen(PORT, () => {
-  console.log(`✅ Servidor en http://localhost:${PORT}`);
+  console.log(`✅ Servidor activo en http://localhost:${PORT}`);
 });
