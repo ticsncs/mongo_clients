@@ -42,42 +42,68 @@ jobs:
             # Navegar al directorio de la aplicación
             cd /home/${{ secrets.SSH_USERNAME }}/api_project/mongo_clients
             
+            # Detener aplicación actual si está en ejecución
+            pm2 stop mongo_users || true
+            
             # Actualiza los archivos de configuración
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
             echo "PORT=${{ secrets.PORT }}" >> .env
-            
-            # Actualiza ecosystem.config.js con los valores de secrets
-            cat > ecosystem.config.js << 'EOL'
-            module.exports = {
-              apps: [{
-                name: "mongo_users",
-                script: "./dist/app.js",
-                interpreter: "ts-node",
-                env: {
-                  NODE_ENV: "production",
-                  PORT: ${{ secrets.PORT }},
-                  MONGO_URI: "${{ secrets.MONGO_URI }}"
-                }
-              }]
-            };
-            EOL
             
             # Obtén los últimos cambios
             git fetch origin main
             git reset --hard origin/main
             
-            # Instala dependencias y construye
+            # Instala dependencias
             npm ci
-            npm run build
             
-            # Reinicia la aplicación con PM2
-            if command -v pm2 &> /dev/null; then
-              pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+            # Verifica si existe src/app.ts
+            if [ -f "./src/app.ts" ]; then
+              # Usar directamente ts-node sin compilación
+              cat > ecosystem.config.js << 'EOL'
+              module.exports = {
+                apps: [{
+                  name: "mongo_users",
+                  script: "./src/app.ts", 
+                  exec_mode: "fork",
+                  interpreter: "./node_modules/.bin/ts-node",
+                  env: {
+                    NODE_ENV: "production",
+                    PORT: ${{ secrets.PORT }},
+                    MONGO_URI: "${{ secrets.MONGO_URI }}"
+                  }
+                }]
+              };
+              EOL
             else
-              echo "PM2 no está instalado, instalándolo..."
-              npm install -g pm2
-              pm2 start ecosystem.config.js
+              # Buscar el archivo principal
+              MAIN_FILE=$(find ./src -name "*.ts" | head -1)
+              if [ -z "$MAIN_FILE" ]; then
+                echo "No se encontró ningún archivo TypeScript en src/"
+                exit 1
+              fi
+              echo "Usando $MAIN_FILE como archivo principal"
+              cat > ecosystem.config.js << EOL
+              module.exports = {
+                apps: [{
+                  name: "mongo_users",
+                  script: "$MAIN_FILE", 
+                  exec_mode: "fork",
+                  interpreter: "./node_modules/.bin/ts-node",
+                  env: {
+                    NODE_ENV: "production",
+                    PORT: ${{ secrets.PORT }},
+                    MONGO_URI: "${{ secrets.MONGO_URI }}"
+                  }
+                }]
+              };
+              EOL
             fi
+            
+            # Inicia la aplicación con PM2
+            pm2 start ecosystem.config.js
             
             # Muestra estado de la aplicación
             pm2 status
+            
+            # Guardar configuración de PM2
+            pm2 save
