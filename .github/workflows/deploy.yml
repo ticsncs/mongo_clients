@@ -63,10 +63,7 @@ jobs:
             npm ci
             npm install --save-dev @types/cors
             
-            # Crear archivo ecosystem.config.js
-            echo "Creando archivo ecosystem.config.js..."
-            
-            # Modificar el archivo tsconfig.json para resolver los problemas de tipos
+            # Configurar correctamente TypeScript para compilación
             cat << EOF > tsconfig.json
             {
               "compilerOptions": {
@@ -92,48 +89,30 @@ jobs:
             }
             EOF
             
-            # Verifica si existe src/app.ts
-            if [ -f "./src/app.ts" ]; then
-              # Usar ts-node directamente sin compilación
-              cat << EOF > ecosystem.config.js
-            module.exports = {
-              apps: [{
-                name: "mongo_users",
-                script: "./src/app.ts", 
-                exec_mode: "fork",
-                interpreter: "./node_modules/.bin/ts-node",
-                env: {
-                  NODE_ENV: "production",
-                  PORT: ${{ secrets.PORT }},
-                  MONGO_URI: "${{ secrets.MONGO_URI }}"
-                }
-              }]
-            };
-            EOF
-            else
-              # Buscar el archivo principal
-              MAIN_FILE=$(find ./src -name "*.ts" | head -1)
-              if [ -z "$MAIN_FILE" ]; then
-                echo "No se encontró ningún archivo TypeScript en src/"
-                exit 1
-              fi
-              echo "Usando $MAIN_FILE como archivo principal"
-              cat << EOF > ecosystem.config.js
-            module.exports = {
-              apps: [{
-                name: "mongo_users",
-                script: "$MAIN_FILE", 
-                exec_mode: "fork",
-                interpreter: "./node_modules/.bin/ts-node",
-                env: {
-                  NODE_ENV: "production",
-                  PORT: ${{ secrets.PORT }},
-                  MONGO_URI: "${{ secrets.MONGO_URI }}"
-                }
-              }]
-            };
-            EOF
+            # Compilar TypeScript a JavaScript
+            echo "Compilando TypeScript a JavaScript..."
+            ./node_modules/.bin/tsc
+            
+            # Verificar que la compilación fue exitosa y existe app.js
+            if [ ! -f "./dist/app.js" ]; then
+              echo "ERROR: Compilación fallida. No se encontró dist/app.js"
+              exit 1
             fi
+            
+            # Crear archivo ecosystem.config.js para ejecutar JavaScript compilado
+            cat << EOF > ecosystem.config.js
+            module.exports = {
+              apps: [{
+                name: "mongo_users",
+                script: "./dist/app.js",
+                env: {
+                  NODE_ENV: "production",
+                  PORT: ${{ secrets.PORT }},
+                  MONGO_URI: "${{ secrets.MONGO_URI }}"
+                }
+              }]
+            };
+            EOF
             
             # Inicia la aplicación con PM2
             echo "Iniciando aplicación con PM2..."
