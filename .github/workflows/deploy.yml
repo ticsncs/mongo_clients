@@ -39,8 +39,33 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Cargar NVM si está instalado
             
+            # Preparar entorno
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            APP_DIR="/home/${{ secrets.SSH_USERNAME }}/api_project/mongo_clients"
+            BACKUP_DIR="/home/${{ secrets.SSH_USERNAME }}/backups/mongo_clients_$TIMESTAMP"
+            
+            # Crear un respaldo de la versión actual (opcional)
+            mkdir -p $BACKUP_DIR
+            cp -r $APP_DIR/.env $APP_DIR/ecosystem.config.js $BACKUP_DIR/ 2>/dev/null || true
+            
             # Navegar al directorio de la aplicación
-            cd /home/${{ secrets.SSH_USERNAME }}/api_project/mongo_clients
+            cd $APP_DIR
+            
+            # Detener la aplicación completamente
+            if command -v pm2 &> /dev/null; then
+              pm2 stop mongo_users || true
+              pm2 delete mongo_users || true
+            else
+              echo "PM2 no está instalado, instalándolo..."
+              npm install -g pm2
+            fi
+            
+            # Limpiar la instalación actual
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Limpiar completamente node_modules y dist
+            rm -rf node_modules dist
             
             # Actualiza los archivos de configuración
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
@@ -62,22 +87,23 @@ jobs:
             };
             EOL
             
-            # Obtén los últimos cambios
-            git fetch origin main
-            git reset --hard origin/main
-            
-            # Instala dependencias y construye
+            # Reinstalar todas las dependencias y reconstruir
             npm ci
             npm run build
             
-            # Reinicia la aplicación con PM2
-            if command -v pm2 &> /dev/null; then
-              pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
-            else
-              echo "PM2 no está instalado, instalándolo..."
-              npm install -g pm2
-              pm2 start ecosystem.config.js
+            # Comprobar que el build se haya realizado correctamente
+            if [ ! -d "./dist" ]; then
+              echo "ERROR: No se ha creado el directorio 'dist'. El build ha fallado."
+              exit 1
             fi
             
-            # Muestra estado de la aplicación
+            # Iniciar la aplicación con PM2
+            pm2 start ecosystem.config.js
+            
+            # Verificar que la aplicación se haya iniciado correctamente
             pm2 status
+            
+            # Guardar la configuración de PM2 para que persista después de reinicios
+            pm2 save
+            
+            echo "Despliegue completado con éxito"
