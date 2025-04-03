@@ -20,9 +20,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Build step omitido porque la aplicación no necesita compilación
-      # - name: Build
-      #   run: npm run build
+      - name: Build
+        run: npm run build
 
       # Tests omitidos porque no hay pruebas configuradas
       # - name: Run tests
@@ -36,8 +35,12 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # Primero, actualiza los archivos de configuración con secrets
-            cd /home/proyectos/api_project/mongo_clients
+            # Asegurarse de que las herramientas necesarias están disponibles
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Cargar NVM si está instalado
+            
+            # Navegar al directorio de la aplicación
+            cd /home/${{ secrets.SSH_USERNAME }}/api_project/mongo_clients
             
             # Actualiza los archivos de configuración
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
@@ -59,5 +62,22 @@ jobs:
             };
             EOL
             
-            # Ejecuta el script de despliegue
-            bash ./deploy.sh
+            # Obtén los últimos cambios
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Instala dependencias y construye
+            npm ci
+            npm run build
+            
+            # Reinicia la aplicación con PM2
+            if command -v pm2 &> /dev/null; then
+              pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+            else
+              echo "PM2 no está instalado, instalándolo..."
+              npm install -g pm2
+              pm2 start ecosystem.config.js
+            fi
+            
+            # Muestra estado de la aplicación
+            pm2 status
