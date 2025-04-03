@@ -62,24 +62,27 @@ jobs:
             # Instala dependencias
             npm ci
             
+            # Crear archivo ecosystem.config.js
+            echo "Creando archivo ecosystem.config.js..."
+            
             # Verifica si existe src/app.ts
             if [ -f "./src/app.ts" ]; then
-              # Usar directamente ts-node sin compilación
-              cat > ecosystem.config.js << 'EOL'
-              module.exports = {
-                apps: [{
-                  name: "mongo_users",
-                  script: "./src/app.ts", 
-                  exec_mode: "fork",
-                  interpreter: "./node_modules/.bin/ts-node",
-                  env: {
-                    NODE_ENV: "production",
-                    PORT: ${{ secrets.PORT }},
-                    MONGO_URI: "${{ secrets.MONGO_URI }}"
-                  }
-                }]
-              };
-              EOL
+              # Usar ts-node directamente sin compilación
+              cat << EOF > ecosystem.config.js
+            module.exports = {
+              apps: [{
+                name: "mongo_users",
+                script: "./src/app.ts", 
+                exec_mode: "fork",
+                interpreter: "./node_modules/.bin/ts-node",
+                env: {
+                  NODE_ENV: "production",
+                  PORT: ${{ secrets.PORT }},
+                  MONGO_URI: "${{ secrets.MONGO_URI }}"
+                }
+              }]
+            };
+            EOF
             else
               # Buscar el archivo principal
               MAIN_FILE=$(find ./src -name "*.ts" | head -1)
@@ -88,21 +91,21 @@ jobs:
                 exit 1
               fi
               echo "Usando $MAIN_FILE como archivo principal"
-              cat > ecosystem.config.js << EOL
-              module.exports = {
-                apps: [{
-                  name: "mongo_users",
-                  script: "$MAIN_FILE", 
-                  exec_mode: "fork",
-                  interpreter: "./node_modules/.bin/ts-node",
-                  env: {
-                    NODE_ENV: "production",
-                    PORT: ${{ secrets.PORT }},
-                    MONGO_URI: "${{ secrets.MONGO_URI }}"
-                  }
-                }]
-              };
-              EOL
+              cat << EOF > ecosystem.config.js
+            module.exports = {
+              apps: [{
+                name: "mongo_users",
+                script: "$MAIN_FILE", 
+                exec_mode: "fork",
+                interpreter: "./node_modules/.bin/ts-node",
+                env: {
+                  NODE_ENV: "production",
+                  PORT: ${{ secrets.PORT }},
+                  MONGO_URI: "${{ secrets.MONGO_URI }}"
+                }
+              }]
+            };
+            EOF
             fi
             
             # Inicia la aplicación con PM2
