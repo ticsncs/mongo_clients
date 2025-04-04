@@ -15,8 +15,8 @@ export const checkCSVContent = async (filename: string) => {
     // Leer archivo CSV
     const fileContent = fs.readFileSync(filePath, "utf8");
 
-    // Parsear manualmente el CSV debido al formato especial
-    const jsonData = parseCSVRobusto(fileContent);
+    // Determinar el formato y parsear el CSV
+    const jsonData = parseCSVMultiFormato(fileContent);
 
     if (jsonData.length === 0) {
       return { message: "⚠️ El archivo CSV está vacío o tiene un formato incorrecto", exists: true };
@@ -38,16 +38,91 @@ export const checkCSVContent = async (filename: string) => {
   }
 };
 
-// Función robusta para parsear el CSV con dobles comillas
-const parseCSVRobusto = (contenidoCSV: string): Array<any> => {
+// Función que detecta y parsea múltiples formatos de CSV
+const parseCSVMultiFormato = (contenidoCSV: string): Array<any> => {
   // Dividir en líneas
   const lineas = contenidoCSV.split('\n').filter(l => l.trim());
   
-  // Ignorar la primera línea (cabecera)
+  // Verificar si es el formato 1 o formato 2
+  const esFormato2 = lineas[0].includes(',""') || 
+                      (lineas.length > 1 && lineas[1].includes(',""'));
+  
+  if (esFormato2) {
+    return parseCSVFormato2(lineas);
+  } else {
+    return parseCSVFormato1(lineas);
+  }
+};
+
+// Parser para el Formato 1 (simple CSV con valores en comillas dobles)
+const parseCSVFormato1 = (lineas: string[]): Array<any> => {
   const resultados: Array<any> = [];
   
-  for (let i = 1; i < lineas.length; i++) {
+  // Determinar si hay encabezado
+  const primeraLinea = lineas[0].toLowerCase();
+  const tieneEncabezado = primeraLinea.includes('código') || 
+                          primeraLinea.includes('cliente') || 
+                          primeraLinea.includes('teléfono');
+  
+  // Índice de inicio (saltamos el encabezado si existe)
+  const indiceInicio = tieneEncabezado ? 1 : 0;
+  
+  for (let i = indiceInicio; i < lineas.length; i++) {
+    const linea = lineas[i].trim();
+    if (!linea) continue;
+    
+    // Verificar si la línea contiene un código de contrato
+    const codigoMatch = linea.match(/CT-\d+/);
+    if (!codigoMatch) continue;
+    
+    // Parsear la línea usando regex para respetar las comillas
+    const regex = /"([^"]*?)"/g;
+    const matches = [...linea.matchAll(regex)];
+    
+    if (matches && matches.length >= 5) {
+      // Extraer valores entre comillas
+      const valores = matches.map(match => match[1].trim());
+      
+      // Procesar los valores
+      const codigo = valores[0];
+      
+      // Extraer el nombre del cliente (puede tener un ID al principio)
+      let nombreCliente = valores[1] || '';
+      const clienteMatch = nombreCliente.match(/^(\d+)\s+(.+)$/);
+      const nombreLimpio = clienteMatch ? clienteMatch[2].trim() : nombreCliente;
+      
+      const resultado = {
+        'Código': codigo,
+        'Cliente': nombreLimpio,
+        'Teléfono': valores[2] || '',
+        'Plan Internet': valores[3] || 'Desconocido',
+        'Servicio Internet': valores[4] || 'Desconocido',
+        'Estado CT': valores[5] || 'Desconocido'
+      };
+      
+      resultados.push(resultado);
+    }
+  }
+  
+  return resultados;
+};
+
+// Parser para el Formato 2 (CSV con comillas anidadas)
+const parseCSVFormato2 = (lineas: string[]): Array<any> => {
+  const resultados: Array<any> = [];
+  
+  // Determinar si hay encabezado
+  const primeraLinea = lineas[0].toLowerCase();
+  const tieneEncabezado = primeraLinea.includes('código') || 
+                          primeraLinea.includes('cliente') || 
+                          primeraLinea.includes('teléfono');
+  
+  // Índice de inicio (saltamos el encabezado si existe)
+  const indiceInicio = tieneEncabezado ? 1 : 0;
+  
+  for (let i = indiceInicio; i < lineas.length; i++) {
     const linea = lineas[i];
+    if (!linea.trim()) continue;
     
     // Extraer código de contrato
     const codigoMatch = linea.match(/CT-\d+/);
@@ -130,8 +205,8 @@ export const readCSVAndSave = async (filename: string) => {
 
     const fileContent = fs.readFileSync(filePath, "utf8");
     
-    // Parsear manualmente el CSV
-    const jsonData = parseCSVRobusto(fileContent);
+    // Usar el nuevo parser que detecta automáticamente el formato
+    const jsonData = parseCSVMultiFormato(fileContent);
 
     if (jsonData.length === 0) {
       return { message: "⚠️ El archivo CSV está vacío o tiene un formato incorrecto", exists: true };
