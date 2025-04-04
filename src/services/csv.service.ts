@@ -236,7 +236,9 @@ export const readCSVAndSave = async (filename: string) => {
 
       // Limpiar los datos antes de guardarlos
       // Si el teléfono está vacío, asignar "000000000"
-      const telefonoLimpio = telefono ? limpiarTelefono(telefono) : "000000000";
+      //const telefonoLimpio = telefono ? limpiarTelefono(telefono) : "000000000";
+      const telefonoLimpio = telefono && telefono.trim() ? limpiarTelefono(telefono) : "000000000";
+
       const nombreLimpio = limpiarNombre(nombre || "Sin Nombre");
 
       // Buscar cliente existente
@@ -245,7 +247,7 @@ export const readCSVAndSave = async (filename: string) => {
       if (!cliente) {
         cliente = new ClienteModel({
           nombre: nombreLimpio,
-          telefono: telefonoLimpio, // Ya tenemos el valor predeterminado si es vacío
+          telefono: telefonoLimpio, // si es vacío
           contratos: [],
         });
 
