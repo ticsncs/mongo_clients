@@ -242,7 +242,7 @@ export const readCSVAndSave = async (filename: string) => {
       if (!cliente) {
         cliente = new ClienteModel({
           nombre: nombreLimpio,
-          telefono: telefonoLimpio,
+          telefono: telefonoLimpio || "000000000",
           contratos: [],
         });
 
