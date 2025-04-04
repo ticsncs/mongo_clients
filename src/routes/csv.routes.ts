@@ -1,16 +1,21 @@
 import { Router } from "express";
-import { uploadCSVData } from "../controllers/csv.controller";
-import { getDetailsJson } from "../controllers/csv.controller";
-import { getDetailClient } from "../controllers/excel.controller";
 
 const router = Router();
 type RouteHandler = (req: Request, res: Response) => Promise<Response>;
 
 
 // Ruta para importar datos desde un Excel
-router.post("/import/:filename", uploadCSVData);
-router.get("/clients", getDetailsJson);
-// La ruta debe coincidir con cómo recoges el parámetro
-//router.post("/search", getDetailClient);
+import { verifyCSV, processCSV, processCSVOptimized } from "../controllers/csv.controller";
+
+
+// Ruta para verificar CSV
+router.get("/verify/:filename", verifyCSV);
+
+// Ruta para procesar CSV (método original)
+router.get("/process/:filename", processCSV);
+
+// Ruta para procesar CSV (método optimizado)
+router.get("/process-optimized/:filename", processCSVOptimized);
+
 
 export default router;

@@ -1,68 +1,44 @@
 import { Request, Response } from "express";
-import { readCSVAndSave, checkCSVContent } from "../services/csv.service";
-import { ClienteModel } from "../models/client";
+import { readCSVAndSave, readCSVAndSaveOptimized, checkCSVContent } from "../services/csv.service";
 
-interface SearchRequest extends Request {
-  body: {
-    searchPhone: string;
-  }
-}
-
-
-
-// Nuevo método para CSV
-export const uploadCSVData = async (req: Request, res: Response): Promise<void> => {
+// Verificar CSV
+export const verifyCSV = async (req: Request, res: Response) => {
   try {
-    const { filename } = req.params;
-    console.log("Nombre del archivo:", filename);
-    
-    
-    // Si todo está bien, procedemos a guardar
-    const result = await readCSVAndSave(filename);
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: "❌ Error en el servidor", error });
-  }
-};
-
-
-
-// Función para verificar CSV
-export const checkCSV = async (req: Request, res: Response) => {
-  try {
-    const { filename } = req.params;
+    const filename = req.params.filename;
     const result = await checkCSVContent(filename);
-    res.json(result);
+    res.status(result.exists ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({ message: "❌ Error en el servidor", error });
+    res.status(500).json({
+      message: "❌ Error al verificar el archivo CSV",
+      error: error.message,
+    });
   }
 };
 
-export const getDetailsJson = async (req: Request, res: Response) => {
+// Procesar CSV (método original)
+export const processCSV = async (req: Request, res: Response) => {
   try {
-    const clientes = await ClienteModel.find().populate("contratos");
-    res.json({
-      clientes: clientes,
-      message: `Se han obtenido: ${clientes.length} en la consulta`
-    });
+    const filename = req.params.filename;
+    const result = await readCSVAndSave(filename);
+    res.status(result.exists === false ? 404 : 200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "❌ Error en el servidor", error });
+    res.status(500).json({
+      message: "❌ Error al procesar el archivo CSV",
+      error: error.message,
+    });
   }
 };
 
-// Corregido el tipo para evitar errores de TypeScript
-export const getDetailClient = async (req: Request, res: Response) => {
-  const { searchPhone } = req.body;
+// Procesar CSV (método optimizado)
+export const processCSVOptimized = async (req: Request, res: Response) => {
   try {
-    const cliente = await ClienteModel.findOne({ telefono: searchPhone });
-    if (!cliente) {
-      return res.status(404).json({ message: "Cliente no encontrado" });
-    }
-    return res.json({
-      cliente: cliente,
-      message: "Cliente encontrado"
-    });
+    const filename = req.params.filename;
+    const result = await readCSVAndSaveOptimized(filename);
+    res.status(result.exists === false ? 404 : 200).json(result);
   } catch (error) {
-    return res.status(500).json({ message: "❌ Error en el servidor", error });
+    res.status(500).json({
+      message: "❌ Error al procesar el archivo CSV",
+      error: error.message,
+    });
   }
 };
