@@ -194,6 +194,7 @@ const parseCSVFormato2 = (lineas: string[]): Array<any> => {
 };
 
 // Leer el CSV y guardar en la BD
+// Leer el CSV y guardar en la BD
 export const readCSVAndSave = async (filename: string) => {
   try {
     const robotFilesPath = '/home/proyectos/Robots/Files';
@@ -226,14 +227,16 @@ export const readCSVAndSave = async (filename: string) => {
       const servicioInternet = row["Servicio Internet"];
       const estadoCT = row["Estado CT"];
 
-      if (!telefono || !codigoContrato) {
-        console.warn("⚠️ Fila inválida. Falta teléfono o código del contrato:", row);
+      // Modificación aquí: verificar solo el código de contrato
+      if (!codigoContrato) {
+        console.warn("⚠️ Fila inválida. Falta código del contrato:", row);
         filasSaltadas++;
         continue;
       }
 
       // Limpiar los datos antes de guardarlos
-      const telefonoLimpio = limpiarTelefono(telefono);
+      // Si el teléfono está vacío, asignar "000000000"
+      const telefonoLimpio = telefono ? limpiarTelefono(telefono) : "000000000";
       const nombreLimpio = limpiarNombre(nombre || "Sin Nombre");
 
       // Buscar cliente existente
@@ -242,7 +245,7 @@ export const readCSVAndSave = async (filename: string) => {
       if (!cliente) {
         cliente = new ClienteModel({
           nombre: nombreLimpio,
-          telefono: telefonoLimpio || "000000000",
+          telefono: telefonoLimpio, // Ya tenemos el valor predeterminado si es vacío
           contratos: [],
         });
 
