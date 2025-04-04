@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { connectDB } from "./config/db-conection";
-import dataRoutes from "./routes/excel.routes";
+import dataRoutesCSV from "./routes/csv.routes";
+import dataRoutesExcel from "./routes/excel.routes"; // Cambia esto si tienes rutas diferentes para Excel
 import cors from "cors";
 
 const app = express();
@@ -10,7 +11,8 @@ connectDB();
 
 app.use(express.json());
 app.use(cors());
-app.use("/api", dataRoutes);
+app.use("/api/csv", dataRoutesCSV);
+app.use("/api/excel", dataRoutesExcel); // Cambia esto si tienes rutas diferentes para Excel
 
 app.listen(PORT, () => {
   console.log(`✅ Servidor activo en http://localhost:${PORT}`);

@@ -9,6 +9,7 @@ interface SearchRequest extends Request {
 }
 
 export const uploadExcelData = async (req: Request, res: Response) => {
+
   try {
     const { filename } = req.params;
     const result = await readExcelAndSave(filename);
