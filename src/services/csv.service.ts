@@ -121,7 +121,8 @@ const parseCSVRobusto = (contenidoCSV: string): Array<any> => {
 // Leer el CSV y guardar en la BD
 export const readCSVAndSave = async (filename: string) => {
   try {
-    const filePath = path.join(__dirname, "../utils", filename);
+    const robotFilesPath = '/home/proyectos/Robots/Files';
+    const filePath = path.join(robotFilesPath, filename);
 
     if (!fs.existsSync(filePath)) {
       return { message: "❌ El archivo no existe", exists: false };
