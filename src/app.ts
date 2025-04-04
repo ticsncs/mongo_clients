@@ -140,7 +140,7 @@ app.use((req: Request, res: Response) => {
 app.use(errorHandlerMiddleware);
 
 app.listen(PORT, () => {
-  logger.info(`✅ Servidor de API iniciado en http://localhost:${PORT}`);
+  logger.info(`✅ Servidor de API disponible en el puerto: ${PORT}`);
 });
 
 // Manejo de excepciones no capturadas
