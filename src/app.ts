@@ -15,5 +15,5 @@ app.use("/api/csv", dataRoutesCSV);
 app.use("/api/excel", dataRoutesExcel); // Cambia esto si tienes rutas diferentes para Excel
 
 app.listen(PORT, () => {
-  console.log(`✅ Servidor activo en http://localhost:${PORT}`);
+  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });
