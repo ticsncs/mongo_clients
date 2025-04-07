@@ -197,10 +197,12 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
     const clientesNuevos = [];
     const clientesParaActualizar = [];
     const contratosNuevos = [];
+    const contratosParaActualizar = []; // Nueva matriz para actualizar contratos existentes
     const relacionesClienteContrato = []; // Para actualizar arreglos de contratos en clientes
     
     let clientesCreados = 0;
     let contratosCreados = 0;
+    let contratosActualizados = 0; // Nuevo contador para contratos actualizados
     let filasSaltadas = 0;
     let clientesActualizados = 0;
 
@@ -226,8 +228,48 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
 
       // Verificar si el contrato ya existe
       if (contratosPorCodigo[codigoContrato]) {
-        continue; // El contrato ya existe, saltamos esta fila
+        // El contrato existe, verificar si hay cambios en sus atributos
+        const contratoExistente = contratosPorCodigo[codigoContrato];
+        let requiereActualizacion = false;
+        const actualizaciones: Record<string, string> = {};
+
+        
+        // Verificar cambios en plan_internet
+        if (planInternet && contratoExistente.plan_internet !== planInternet) {
+          actualizaciones.plan_internet = planInternet;
+          requiereActualizacion = true;
+          logger.info(`Cambio detectado en plan_internet para contrato ${codigoContrato}: ${contratoExistente.plan_internet} -> ${planInternet}`);
+        }
+        
+        // Verificar cambios en servicio_internet
+        if (servicioInternet && contratoExistente.servicio_internet !== servicioInternet) {
+          actualizaciones.servicio_internet = servicioInternet;
+          requiereActualizacion = true;
+          logger.info(`Cambio detectado en servicio_internet para contrato ${codigoContrato}: ${contratoExistente.servicio_internet} -> ${servicioInternet}`);
+        }
+        
+        // Verificar cambios en estado_ct
+        if (estadoCT && contratoExistente.estado_ct !== estadoCT) {
+          actualizaciones.estado_ct = estadoCT;
+          requiereActualizacion = true;
+          logger.info(`Cambio detectado en estado_ct para contrato ${codigoContrato}: ${contratoExistente.estado_ct} -> ${estadoCT}`);
+        }
+        
+        // Si hay cambios, añadir a la lista de actualizaciones
+        if (requiereActualizacion) {
+          contratosParaActualizar.push({
+            updateOne: {
+              filter: { _id: contratoExistente._id },
+              update: { $set: actualizaciones }
+            }
+          });
+          contratosActualizados++;
+        }
+        
+        continue; // Pasar a la siguiente fila
       }
+
+      // Si llegamos aquí, el contrato no existe, así que lo creamos
 
       // Verificar si el cliente existe
       let clienteId;
@@ -304,6 +346,12 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
       await ContratoModel.insertMany(contratosNuevos);
     }
     
+    // Actualizar contratos existentes
+    if (contratosParaActualizar.length > 0) {
+      logger.info(`Actualizando ${contratosParaActualizar.length} contratos existentes...`);
+      await ContratoModel.bulkWrite(contratosParaActualizar);
+    }
+    
     // Actualizar los arrays de contratos en los clientes
     if (relacionesClienteContrato.length > 0) {
       logger.info(`Actualizando relaciones cliente-contrato: ${relacionesClienteContrato.length}...`);
@@ -322,6 +370,7 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
         clientesCreados,
         clientesActualizados,
         contratosCreados,
+        contratosActualizados, // Incluir contador de contratos actualizados en el resumen
         filasSaltadas,
         totalFilas: jsonData.length
       }
