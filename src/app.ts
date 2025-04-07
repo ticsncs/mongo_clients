@@ -140,7 +140,7 @@ app.use((req: Request, res: Response) => {
 app.use(errorHandlerMiddleware);
 
 app.listen(PORT, () => {
-  logger.info(`✅ Servidor de API activo en el puerto: ${PORT}`);
+  logger.info(`✅ Api disponible 190.96.96.20  en el puerto: ${PORT}`);
 });
 
 // Manejo de excepciones no capturadas
