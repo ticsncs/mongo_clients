@@ -40,104 +40,9 @@ export const checkCSVContent = async (filename: string) => {
   }
 };
 
-// Leer el CSV y guardar en la BD (método original)
-export const readCSVAndSave = async (filename: string) => {
-  try {
-    const robotFilesPath = '/home/proyectos/Robots/Files';
-    const filePath = path.join(robotFilesPath, filename);
-
-    if (!fs.existsSync(filePath)) {
-      return { message: "❌ El archivo no existe", exists: false };
-    }
-
-    const fileContent = fs.readFileSync(filePath, "utf8");
-    
-    // Usar el nuevo parser que detecta automáticamente el formato
-    const jsonData = parseCSVMultiFormato(fileContent);
-
-    if (jsonData.length === 0) {
-      return { message: "⚠️ El archivo CSV está vacío o tiene un formato incorrecto", exists: true };
-    }
-
-    let clientesCreados = 0;
-    let contratosCreados = 0;
-    let filasSaltadas = 0;
-    let clientesActualizados = 0;
-
-    for (const row of jsonData) {
-      // Obtener valores de las columnas (ahora correctamente organizadas)
-      const codigoContrato = row["Código"];
-      const nombre = row["Cliente"];
-      const telefono = row["Teléfono"];
-      const planInternet = row["Plan Internet"];
-      const servicioInternet = row["Servicio Internet"];
-      const estadoCT = row["Estado CT"];
-
-      // Modificación aquí: verificar solo el código de contrato
-      if (!codigoContrato) {
-        console.warn("⚠️ Fila inválida. Falta código del contrato:", row);
-        filasSaltadas++;
-        continue;
-      }
-
-      // Limpiar los datos antes de guardarlos
-      const telefonoLimpio = telefono && telefono.trim() ? limpiarTelefono(telefono) : "000000000";
-      const nombreLimpio = limpiarNombre(nombre || "Sin Nombre");
-
-      // Buscar cliente existente
-      let cliente = await ClienteModel.findOne({ telefono: telefonoLimpio });
-
-      if (!cliente) {
-        cliente = new ClienteModel({
-          nombre: nombreLimpio,
-          telefono: telefonoLimpio, // si es vacío
-          contratos: [],
-        });
-
-        await cliente.save();
-        clientesCreados++;
-      } else if (cliente.nombre !== nombreLimpio && nombreLimpio !== "Sin Nombre") {
-        cliente.nombre = nombreLimpio;
-        await cliente.save();
-        clientesActualizados++;
-      }
-
-      // Evitar duplicados de contratos
-      const contratoExistente = await ContratoModel.findOne({ codigo: codigoContrato });
-
-      if (!contratoExistente) {
-        const nuevoContrato = new ContratoModel({
-          codigo: codigoContrato,
-          plan_internet: planInternet,
-          servicio_internet: servicioInternet,
-          estado_ct: estadoCT,
-          cliente: cliente._id,
-        });
-
-        await nuevoContrato.save();
-        contratosCreados++;
-
-        cliente.contratos.push(nuevoContrato._id);
-        await cliente.save();
-      }
-    }
-
-    return { 
-      message: "✅ Datos guardados correctamente en MongoDB",
-      resumen: {
-        clientesCreados,
-        clientesActualizados,
-        contratosCreados,
-        filasSaltadas,
-        totalFilas: jsonData.length
-      }
-    };
-  } catch (error) {
-    return { message: "❌ Error al procesar el archivo", error: error.message };
-  }
-};
 
 // Leer el CSV y guardar en la BD con optimizaciones
+// Leer el CSV y guardar en la BD con limpieza previa
 export const readCSVAndSaveOptimized = async (filename: string) => {
   try {
     const startTime = Date.now();
@@ -164,47 +69,29 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
 
     logger.info(`CSV parseado correctamente. Total de filas: ${jsonData.length}`);
 
-    // Extractores para teléfonos y códigos de contrato
+    // Extraer los teléfonos y códigos de contrato
     const telefonos = jsonData.map(row => limpiarTelefono(row["Teléfono"] || "000000000"));
     const codigosContrato = jsonData.map(row => row["Código"]);
 
-    // 1. Optimización: Consulta en batch para todos los clientes existentes
-    logger.info(`Consultando clientes existentes en batch...`);
-    const clientesExistentes = await ClienteModel.find({ 
-      telefono: { $in: telefonos } 
-    }).lean();
+    // NUEVO: Limpiar las colecciones antes de insertar nuevos datos
+    logger.info(`Limpiando colecciones antes de insertar nuevos datos...`);
     
-    // Crear un mapa para acceso rápido
-    const clientesPorTelefono = {};
-    clientesExistentes.forEach(cliente => {
-      clientesPorTelefono[cliente.telefono] = cliente;
-    });
+    // Limpiar contratos
+    await ContratoModel.deleteMany({});
+    logger.info(`Colección de contratos limpiada`);
     
-    // 2. Optimización: Consulta en batch para contratos existentes
-    logger.info(`Consultando contratos existentes en batch...`);
-    const contratosExistentes = await ContratoModel.find({
-      codigo: { $in: codigosContrato }
-    }).lean();
-    
-    // Crear un mapa para acceso rápido
-    const contratosPorCodigo = {};
-    contratosExistentes.forEach(contrato => {
-      contratosPorCodigo[contrato.codigo] = contrato;
-    });
+    // Limpiar clientes
+    await ClienteModel.deleteMany({});
+    logger.info(`Colección de clientes limpiada`);
 
-    // 3. Preparar operaciones en lotes
-    logger.info(`Preparando operaciones en lotes...`);
+    // Preparar datos para inserción masiva
     const clientesNuevos = [];
-    const clientesParaActualizar = [];
     const contratosNuevos = [];
-    const contratosParaActualizar = []; // Nueva matriz para actualizar contratos existentes
-    const relacionesClienteContrato = []; // Para actualizar arreglos de contratos en clientes
+    const mapaTelefonoCliente = {}; // Para no duplicar clientes
     
     let clientesCreados = 0;
     let contratosCreados = 0;
-    let contratosActualizados = 0; // Nuevo contador para contratos actualizados
     let filasSaltadas = 0;
-    let clientesActualizados = 0;
 
     // Procesar los datos
     for (const row of jsonData) {
@@ -226,56 +113,9 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
       const telefonoLimpio = telefono && telefono.trim() ? limpiarTelefono(telefono) : "000000000";
       const nombreLimpio = limpiarNombre(nombre || "Sin Nombre");
 
-      // Verificar si el contrato ya existe
-      if (contratosPorCodigo[codigoContrato]) {
-        // El contrato existe, verificar si hay cambios en sus atributos
-        const contratoExistente = contratosPorCodigo[codigoContrato];
-        let requiereActualizacion = false;
-        const actualizaciones: Record<string, string> = {};
-
-        
-        // Verificar cambios en plan_internet
-        if (planInternet && contratoExistente.plan_internet !== planInternet) {
-          actualizaciones.plan_internet = planInternet;
-          requiereActualizacion = true;
-          logger.info(`Cambio detectado en plan_internet para contrato ${codigoContrato}: ${contratoExistente.plan_internet} -> ${planInternet}`);
-        }
-        
-        // Verificar cambios en servicio_internet
-        if (servicioInternet && contratoExistente.servicio_internet !== servicioInternet) {
-          actualizaciones.servicio_internet = servicioInternet;
-          requiereActualizacion = true;
-          logger.info(`Cambio detectado en servicio_internet para contrato ${codigoContrato}: ${contratoExistente.servicio_internet} -> ${servicioInternet}`);
-        }
-        
-        // Verificar cambios en estado_ct
-        if (estadoCT && contratoExistente.estado_ct !== estadoCT) {
-          actualizaciones.estado_ct = estadoCT;
-          requiereActualizacion = true;
-          logger.info(`Cambio detectado en estado_ct para contrato ${codigoContrato}: ${contratoExistente.estado_ct} -> ${estadoCT}`);
-        }
-        
-        // Si hay cambios, añadir a la lista de actualizaciones
-        if (requiereActualizacion) {
-          contratosParaActualizar.push({
-            updateOne: {
-              filter: { _id: contratoExistente._id },
-              update: { $set: actualizaciones }
-            }
-          });
-          contratosActualizados++;
-        }
-        
-        continue; // Pasar a la siguiente fila
-      }
-
-      // Si llegamos aquí, el contrato no existe, así que lo creamos
-
-      // Verificar si el cliente existe
+      // Verificar si ya procesamos este cliente (por teléfono)
       let clienteId;
-      const clienteExistente = clientesPorTelefono[telefonoLimpio];
-      
-      if (!clienteExistente) {
+      if (!mapaTelefonoCliente[telefonoLimpio]) {
         // Es un cliente nuevo
         const nuevoClienteId = new mongoose.Types.ObjectId();
         clienteId = nuevoClienteId;
@@ -284,23 +124,17 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
           _id: nuevoClienteId,
           nombre: nombreLimpio,
           telefono: telefonoLimpio,
-          contratos: [], // Se actualizará después
+          contratos: [], // Se llenará después con los IDs de contratos
         });
+        
+        mapaTelefonoCliente[telefonoLimpio] = {
+          id: nuevoClienteId,
+          contratos: []
+        };
         
         clientesCreados++;
       } else {
-        clienteId = clienteExistente._id;
-        
-        // Verificar si requiere actualización de nombre
-        if (clienteExistente.nombre !== nombreLimpio && nombreLimpio !== "Sin Nombre") {
-          clientesParaActualizar.push({
-            updateOne: {
-              filter: { _id: clienteId },
-              update: { $set: { nombre: nombreLimpio } }
-            }
-          });
-          clientesActualizados++;
-        }
+        clienteId = mapaTelefonoCliente[telefonoLimpio].id;
       }
 
       // Crear el nuevo contrato
@@ -314,49 +148,29 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
         cliente: clienteId
       });
       
-      // Registrar la relación para actualizar después
-      relacionesClienteContrato.push({
-        updateOne: {
-          filter: { _id: clienteId },
-          update: { $push: { contratos: nuevoContratoId } }
-        }
-      });
+      // Guardar relación para actualizar el arreglo de contratos del cliente
+      mapaTelefonoCliente[telefonoLimpio].contratos.push(nuevoContratoId);
       
       contratosCreados++;
     }
 
-    // 4. Ejecutar operaciones en lotes
-    logger.info(`Ejecutando operaciones en lotes...`);
-    
-    // Insertar clientes nuevos
-    if (clientesNuevos.length > 0) {
-      logger.info(`Insertando ${clientesNuevos.length} clientes nuevos...`);
-      await ClienteModel.insertMany(clientesNuevos);
+    // Actualizar las referencias de contratos en los objetos de clientes
+    for (const telefono in mapaTelefonoCliente) {
+      const clienteInfo = mapaTelefonoCliente[telefono];
+      
+      // Buscar el cliente en el array de clientes nuevos
+      const clienteIndex = clientesNuevos.findIndex(c => c._id.equals(clienteInfo.id));
+      if (clienteIndex !== -1) {
+        clientesNuevos[clienteIndex].contratos = clienteInfo.contratos;
+      }
     }
+
+    // Insertar datos en lotes
+    logger.info(`Insertando ${clientesNuevos.length} clientes nuevos...`);
+    await ClienteModel.insertMany(clientesNuevos);
     
-    // Actualizar clientes existentes
-    if (clientesParaActualizar.length > 0) {
-      logger.info(`Actualizando ${clientesParaActualizar.length} clientes existentes...`);
-      await ClienteModel.bulkWrite(clientesParaActualizar);
-    }
-    
-    // Insertar contratos nuevos
-    if (contratosNuevos.length > 0) {
-      logger.info(`Insertando ${contratosNuevos.length} contratos nuevos...`);
-      await ContratoModel.insertMany(contratosNuevos);
-    }
-    
-    // Actualizar contratos existentes
-    if (contratosParaActualizar.length > 0) {
-      logger.info(`Actualizando ${contratosParaActualizar.length} contratos existentes...`);
-      await ContratoModel.bulkWrite(contratosParaActualizar);
-    }
-    
-    // Actualizar los arrays de contratos en los clientes
-    if (relacionesClienteContrato.length > 0) {
-      logger.info(`Actualizando relaciones cliente-contrato: ${relacionesClienteContrato.length}...`);
-      await ClienteModel.bulkWrite(relacionesClienteContrato);
-    }
+    logger.info(`Insertando ${contratosNuevos.length} contratos nuevos...`);
+    await ContratoModel.insertMany(contratosNuevos);
 
     const endTime = Date.now();
     const duration = (endTime - startTime) / 1000;
@@ -368,11 +182,10 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
       duracion: `${duration.toFixed(2)} segundos`,
       resumen: {
         clientesCreados,
-        clientesActualizados,
         contratosCreados,
-        contratosActualizados, // Incluir contador de contratos actualizados en el resumen
         filasSaltadas,
-        totalFilas: jsonData.length
+        totalFilas: jsonData.length,
+        coleccionesLimpiadas: true // Indicar que se limpiaron las colecciones
       }
     };
   } catch (error) {
