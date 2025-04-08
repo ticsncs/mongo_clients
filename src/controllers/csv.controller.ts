@@ -24,6 +24,8 @@ export const processCSVOptimized = async (req: Request, res: Response) => {
     const filename = req.params.filename;
     const result = await readCSVAndSaveOptimized(filename);
     res.status(result.exists === false ? 404 : 200).json(result);
+    console.log("Resultado de la consulta", result.resumen)
+
   } catch (error) {
     res.status(500).json({
       message: "❌ Error al procesar el archivo CSV",
