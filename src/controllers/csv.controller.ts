@@ -87,42 +87,55 @@ export const getDetailsJson = async (req: Request, res: Response) => {
 
 
 
-// Verificar CSV
+// Obtiene la info de un cliente por correo o teléfono
 export const get_data_client = async (req: Request, res: Response) => {
   try {
-    const correo = req.params.correo; // ✅ Extraer solo el string
-    const telefono = req.params.telefono; // ✅ Extraer solo el string
+    const correo = req.params.correo;
+    const telefono = req.params.telefono;
 
-    // Buscar cliente que tenga el correo o el teléfono vinculados
-    const cliente = await ClienteModel.findOne({
-      $or: [{ correo }, { teléfono: telefono }]
-    })
-    .select("nombre teléfono correo contratos")
-    .populate({
-      path: "contratos",
-      select: "código plan_internet estado_ct",
-    })
-    .lean();
+    const orConditions = [];
 
-    console.log("Cliente encontrado", cliente)
-    if (!cliente) {
-      res.status(404).json({
-        message: "❌ Cliente no encontrado",
-      });
-      return;
+    if (correo && correo.trim() !== "") {
+      orConditions.push({ correo: correo });
     }
 
-    res.status(200).json({
+    if (telefono && telefono.trim() !== "") {
+      orConditions.push({ teléfono: telefono });
+    }
+
+    if (orConditions.length === 0) {
+      return res.status(400).json({
+        message: "❌ Debes proporcionar al menos un correo o un teléfono válido",
+      });
+    }
+
+    const cliente = await ClienteModel.findOne({
+      $or: orConditions
+    })
+      .select("nombre teléfono correo contratos")
+      .populate({
+        path: "contratos",
+        select: "código plan_internet estado_ct",
+      })
+      .lean();
+
+    if (!cliente) {
+      return res.status(404).json({
+        message: "❌ Cliente no encontrado",
+      });
+    }
+
+    return res.status(200).json({
       cliente,
       message: "✅ Cliente encontrado",
     });
-  
-  }
-  catch (error) {
-    res.status(500).json({
+
+  } catch (error) {
+    return res.status(500).json({
       message: "❌ Error al obtener los datos del cliente",
       error: error.message,
     });
   }
 };
+
 
