@@ -268,7 +268,9 @@ const parseCSVFormato1 = (lineas: string[]): Array<any> => {
         'Teléfono': valores[2] || '',
         'Plan Internet': valores[3] || 'Desconocido',
         'Servicio Internet': valores[4] || 'Desconocido',
-        'Estado CT': valores[5] || 'Desconocido'
+        'Estado CT': valores[5] || 'Desconocido',
+        'Cliente/Correo electrónico': valores[6] || '',
+
       };
       
       resultados.push(resultado);
@@ -277,6 +279,7 @@ const parseCSVFormato1 = (lineas: string[]): Array<any> => {
   
   return resultados;
 };
+
 
 // Parser para el Formato 2 (CSV con comillas anidadas)
 const parseCSVFormato2 = (lineas: string[]): Array<any> => {

@@ -47,7 +47,7 @@ export const getDetailsJson = async (req: Request, res: Response) => {
     
     // Obtener clientes con paginación y población selectiva
     const clientes = await ClienteModel.find()
-      .select('nombre telefono Cliente/Correo electrónico') // Seleccionar solo campos necesarios
+      .select('nombre telefono correo') // Seleccionar solo campos necesarios
       .populate({
         path: 'contratos',
         select: 'codigo plan_internet estado_ct' // Seleccionar solo campos necesarios de contratos
