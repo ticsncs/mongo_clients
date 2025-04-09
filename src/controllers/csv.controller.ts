@@ -105,6 +105,7 @@ export const get_data_client = async (req: Request, res: Response) => {
       select: 'código plan_internet estado_ct' // Seleccionar solo campos necesarios de contratos
     })
     .lean(); // Usar lean() para mejor rendimiento
+    console.log("Cliente encontrado", cliente)
   
   }
   catch (error) {
