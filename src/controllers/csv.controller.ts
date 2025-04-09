@@ -90,16 +90,17 @@ export const getDetailsJson = async (req: Request, res: Response) => {
 // Verificar CSV
 export const get_data_client = async (req: Request, res: Response) => {
   try {
-    const  correo  = req.params;
+    const correo = req.params.correo; // ✅ Extraer solo el string
 
     // Buscar cliente que tenga el correo o el teléfono vinculados
-    const cliente = await ClienteModel.findOne({correo})
-    .select('nombre teléfono correo contratos') // Seleccionar solo campos necesarios
+    const cliente = await ClienteModel.findOne({ correo })
+    .select("nombre teléfono correo contratos")
     .populate({
-      path: 'contratos',
-      select: 'código plan_internet estado_ct' // Seleccionar solo campos necesarios de contratos
+      path: "contratos",
+      select: "código plan_internet estado_ct",
     })
-    .lean(); // Usar lean() para mejor rendimiento
+    .lean();
+
     console.log("Cliente encontrado", cliente)
   
   }
