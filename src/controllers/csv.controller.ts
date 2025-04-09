@@ -90,8 +90,9 @@ export const getDetailsJson = async (req: Request, res: Response) => {
 // Verificar CSV
 export const get_data_client = async (req: Request, res: Response) => {
   try {
-    const { correo, telefono } = req.params;
-    console.log("Correo y teléfono recibidos", correo, telefono)
+    const { correo } = req.params;
+    console.log("Correo recibido", req.params)
+    console.log("Correo y teléfono recibidos", correo)
 
     // Buscar cliente que tenga el correo o el teléfono vinculados
     const cliente = await ClienteModel.findOne({correo})
