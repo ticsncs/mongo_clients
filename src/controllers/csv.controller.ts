@@ -91,14 +91,10 @@ export const getDetailsJson = async (req: Request, res: Response) => {
 export const get_data_client = async (req: Request, res: Response) => {
   try {
     const { correo, telefono } = req.params;
+    console.log("Correo y teléfono recibidos", correo, telefono)
 
     // Buscar cliente que tenga el correo o el teléfono vinculados
-    const cliente = await ClienteModel.findOne({
-      $or: [
-        { correo: correo },
-        { teléfono: telefono }
-      ]
-    })
+    const cliente = await ClienteModel.findOne({correo})
     .select('nombre teléfono correo contratos') // Seleccionar solo campos necesarios
     .populate({
       path: 'contratos',
