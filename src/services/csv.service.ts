@@ -98,6 +98,7 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
       const codigoContrato = row["Código"];
       const nombre = row["Cliente"];
       const telefono = row["Teléfono"];
+      const correo = row["Cliente/Correo electrónico"];
       const planInternet = row["Plan Internet"];
       const servicioInternet = row["Servicio Internet"];
       const estadoCT = row["Estado CT"];
@@ -112,6 +113,7 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
       // Limpiar los datos
       const telefonoLimpio = telefono && telefono.trim() ? limpiarTelefono(telefono) : "000000000";
       const nombreLimpio = limpiarNombre(nombre || "Sin Nombre");
+      const correoLimpio = correo ? correo.trim() : "";
 
       // Verificar si ya procesamos este cliente (por teléfono)
       let clienteId;
@@ -124,6 +126,7 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
           _id: nuevoClienteId,
           nombre: nombreLimpio,
           telefono: telefonoLimpio,
+          correo: correo || "",
           contratos: [], // Se llenará después con los IDs de contratos
         });
         
@@ -282,8 +285,9 @@ const parseCSVFormato2 = (lineas: string[]): Array<any> => {
   // Determinar si hay encabezado
   const primeraLinea = lineas[0].toLowerCase();
   const tieneEncabezado = primeraLinea.includes('código') || 
-                          primeraLinea.includes('cliente') || 
-                          primeraLinea.includes('teléfono');
+                          primeraLinea.includes('cliente') ||
+                          primeraLinea.includes('teléfono') ||
+                          primeraLinea.includes('cliente/correo electrónico');
   
   // Índice de inicio (saltamos el encabezado si existe)
   const indiceInicio = tieneEncabezado ? 1 : 0;
@@ -350,6 +354,7 @@ const parseCSVFormato2 = (lineas: string[]): Array<any> => {
       'Código': codigo,
       'Cliente': nombreCliente.replace(/"/g, ''),
       'Teléfono': telefonoLimpio,
+      'Cliente/Correo electrónico': valores[5] || '',
       'Plan Internet': planInternetLimpio,
       'Servicio Internet': servicioInternetLimpio,
       'Estado CT': estadoCTLimpio

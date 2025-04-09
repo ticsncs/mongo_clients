@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const ClienteSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
   telefono: { type: String, required: false , default: "000000000" },
+  correo: { type: String, required: false },
   contratos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Contrato" }],
 }, { timestamps: true });
 

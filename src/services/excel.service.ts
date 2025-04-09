@@ -25,6 +25,7 @@ export const readExcelAndSave = async (filename: string) => {
         cliente = new ClienteModel({
           nombre: row["Cliente"] || "undefined",
           telefono: row["Teléfono"] || "undefined",
+          correo: row["Cliente/Correo electrónico"] || "undefined",
           contratos: [] 
         });
         await cliente.save();
