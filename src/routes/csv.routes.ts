@@ -16,7 +16,7 @@ const router = Router();
 // 🔄 Ruta para verificar CSV
 router.get("/verify/:filename", verifyCSV);
 // 📊 Ruta para obtener datos de cliente
-router.get("/get/data/:email/:phone", get_data_client);
+router.get("/get/data/:email", get_data_client);
 
 // ⚙️ Ruta para procesar CSV de forma optimizada
 router.get("/process-optimized/:filename", processCSVOptimized);
