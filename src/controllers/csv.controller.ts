@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import { ClienteModel } from "../models/client";
 import { readCSVAndSaveOptimized, checkCSVContent } from "../services/csv.service";
 import { logger } from "../app"; // Importa el logger que configuramos anteriormente
@@ -47,10 +48,10 @@ export const getDetailsJson = async (req: Request, res: Response) => {
     
     // Obtener clientes con paginación y población selectiva
     const clientes = await ClienteModel.find()
-      .select('nombre telefono correo') // Seleccionar solo campos necesarios
+      .select('nombre teléfono correo') // Seleccionar solo campos necesarios
       .populate({
         path: 'contratos',
-        select: 'codigo plan_internet estado_ct' // Seleccionar solo campos necesarios de contratos
+        select: 'código plan_internet estado_ct' // Seleccionar solo campos necesarios de contratos
       })
       .skip(skip)
       .limit(limit)
@@ -83,3 +84,34 @@ export const getDetailsJson = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+
+// Verificar CSV
+export const get_data_client = async (req: Request, res: Response) => {
+  try {
+    const { correo, telefono } = req.params;
+
+    // Buscar cliente que tenga el correo o el teléfono vinculados
+    const cliente = await ClienteModel.findOne({
+      $or: [
+        { correo: correo },
+        { teléfono: telefono }
+      ]
+    })
+    .select('nombre teléfono correo contratos') // Seleccionar solo campos necesarios
+    .populate({
+      path: 'contratos',
+      select: 'código plan_internet estado_ct' // Seleccionar solo campos necesarios de contratos
+    })
+    .lean(); // Usar lean() para mejor rendimiento
+  
+  }
+  catch (error) {
+    res.status(500).json({
+      message: "❌ Error al obtener los datos del cliente",
+      error: error.message,
+    });
+  }
+};
+

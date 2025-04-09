@@ -1,25 +1,29 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 
-const router = Router();
+// Controladores
+import { 
+  verifyCSV, 
+  get_data_client,
+  processCSVOptimized, 
+  getDetailsJson, 
+} from "../controllers/csv.controller";
+
+// Definición de tipo para controladores asíncronos (opcional pero útil)
 type RouteHandler = (req: Request, res: Response) => Promise<Response>;
 
+const router = Router();
 
-// Ruta para importar datos desde un Excel
-import { verifyCSV, processCSVOptimized, getDetailsJson} from "../controllers/csv.controller";
-
-
-// Ruta para verificar CSV
+// 🔄 Ruta para verificar CSV
 router.get("/verify/:filename", verifyCSV);
+// 📊 Ruta para obtener datos de cliente
+router.get("/get/data/:email/:phone", get_data_client);
 
-// Ruta para procesar CSV (método original)
-
-
-
-// Ruta para procesar CSV (método optimizado)
+// ⚙️ Ruta para procesar CSV de forma optimizada
 router.get("/process-optimized/:filename", processCSVOptimized);
 
-// Ruta para obtener detalles en formato JSON
+// 📄 Ruta para obtener detalles en formato JSON
 router.get("/details", getDetailsJson);
 
+// 🔍 Ruta para obtener detalles de cliente por estado_ct, correo o teléfono
 
 export default router;

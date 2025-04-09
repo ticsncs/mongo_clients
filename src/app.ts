@@ -1,7 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import { connectDB } from "./config/db-conection";
 import dataRoutesCSV from "./routes/csv.routes";
-import dataRoutesExcel from "./routes/excel.routes";
 import cors from "cors";
 import morgan from "morgan";
 import winston from "winston";
@@ -118,7 +117,6 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms', 
 
 // Rutas de la API
 app.use("/api/csv", dataRoutesCSV);
-app.use("/api/excel", dataRoutesExcel);
 
 // Ruta para verificar el estado del servidor
 app.get('/health', (req: Request, res: Response) => {
