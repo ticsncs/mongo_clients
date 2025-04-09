@@ -91,9 +91,12 @@ export const getDetailsJson = async (req: Request, res: Response) => {
 export const get_data_client = async (req: Request, res: Response) => {
   try {
     const correo = req.params.correo; // ✅ Extraer solo el string
+    const telefono = req.params.telefono; // ✅ Extraer solo el string
 
     // Buscar cliente que tenga el correo o el teléfono vinculados
-    const cliente = await ClienteModel.findOne({ correo })
+    const cliente = await ClienteModel.findOne({
+      $or: [{ correo }, { teléfono: telefono }]
+    })
     .select("nombre teléfono correo contratos")
     .populate({
       path: "contratos",
@@ -102,6 +105,17 @@ export const get_data_client = async (req: Request, res: Response) => {
     .lean();
 
     console.log("Cliente encontrado", cliente)
+    if (!cliente) {
+      res.status(404).json({
+        message: "❌ Cliente no encontrado",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      cliente,
+      message: "✅ Cliente encontrado",
+    });
   
   }
   catch (error) {
