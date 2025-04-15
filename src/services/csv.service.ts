@@ -102,6 +102,9 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
       const planInternet = row["Plan Internet"];
       const servicioInternet = row["Servicio Internet"];
       const estadoCT = row["Estado CT"];
+      const formaPago = row["Forma de Pago"] || "Desconocido";
+      const fechaAct = row["Fecha Activacion"] || "";
+      const fechaCorte = row["Fecha de Corte"] || "";
 
       // Verificar datos obligatorios
       if (!codigoContrato) {
@@ -148,6 +151,9 @@ export const readCSVAndSaveOptimized = async (filename: string) => {
         plan_internet: planInternet,
         servicio_internet: servicioInternet,
         estado_ct: estadoCT,
+        forma_pago: formaPago,
+        fecha_act: fechaAct ? fechaAct : "",
+        fecha_corte: fechaCorte ? fechaCorte : "",
         cliente: clienteId
       });
       
@@ -270,6 +276,9 @@ const parseCSVFormato1 = (lineas: string[]): Array<any> => {
         'Servicio Internet': valores[4] || 'Desconocido',
         'Estado CT': valores[5] || 'Desconocido',
         'Cliente/Correo electrónico': valores[6] || '',
+        'Forma de Pago': valores[7] || 'Desconocido',
+        'Fecha Activacion': valores[8] || '',
+        'Fecha de Corte': valores[9] || ''
 
       };
       
@@ -291,6 +300,7 @@ const parseCSVFormato2 = (lineas: string[]): Array<any> => {
                           primeraLinea.includes('cliente') ||
                           primeraLinea.includes('teléfono') ||
                           primeraLinea.includes('cliente/correo electrónico');
+                        
   
   // Índice de inicio (saltamos el encabezado si existe)
   const indiceInicio = tieneEncabezado ? 1 : 0;
@@ -352,7 +362,11 @@ const parseCSVFormato2 = (lineas: string[]): Array<any> => {
     const planInternetLimpio = (valores[2] || 'Desconocido').replace(/"/g, '');
     const servicioInternetLimpio = (valores[3] || 'Desconocido').replace(/"/g, '');
     const estadoCTLimpio = (valores[4] || 'Desconocido').replace(/"/g, '');
-    
+    const clienteCorreoLimpio = (valores[5] || '').replace(/"/g, '');
+    const formaPagoLimpio = (valores[6] || 'Desconocido').replace(/"/g, '');
+    const fechaActLimpio = (valores[7] || '').replace(/"/g, '');
+    const fechaCorteLimpio = (valores[8] || '').replace(/"/g, '');
+
     const resultado = {
       'Código': codigo,
       'Cliente': nombreCliente.replace(/"/g, ''),
@@ -360,7 +374,10 @@ const parseCSVFormato2 = (lineas: string[]): Array<any> => {
       'Cliente/Correo electrónico': valores[5] || '',
       'Plan Internet': planInternetLimpio,
       'Servicio Internet': servicioInternetLimpio,
-      'Estado CT': estadoCTLimpio
+      'Estado CT': estadoCTLimpio,
+      'Forma de Pago': formaPagoLimpio,
+      'Fecha Activacion': fechaActLimpio,
+      'Fecha de Corte': fechaCorteLimpio,
     };
     
     resultados.push(resultado);

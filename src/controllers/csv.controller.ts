@@ -51,7 +51,7 @@ export const getDetailsJson = async (req: Request, res: Response) => {
       .select('nombre teléfono correo') // Seleccionar solo campos necesarios
       .populate({
         path: 'contratos',
-        select: 'código plan_internet estado_ct' // Seleccionar solo campos necesarios de contratos
+        select: 'código plan_internet estado_ct forma_pago fecha_act fecha_corte' // Seleccionar solo campos necesarios de contratos
       })
       .skip(skip)
       .limit(limit)
@@ -100,7 +100,7 @@ export const get_data_client = async (req: Request, res: Response) => {
     .select("nombre teléfono correo contratos")
     .populate({
       path: "contratos",
-      select: "código plan_internet estado_ct",
+      select: "código plan_internet estado_ct forma_pago fecha_act fecha_corte",
     })
     .lean();
 
