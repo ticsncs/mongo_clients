@@ -268,6 +268,7 @@ const parseCSVFormato1 = (lineas: string[]): Array<any> => {
       const clienteMatch = nombreCliente.match(/^(\d+)\s+(.+)$/);
       const nombreLimpio = clienteMatch ? clienteMatch[2].trim() : nombreCliente;
       
+
       const resultado = {
         'Código': codigo,
         'Cliente': nombreLimpio,
@@ -363,9 +364,9 @@ const parseCSVFormato2 = (lineas: string[]): Array<any> => {
     const servicioInternetLimpio = (valores[3] || 'Desconocido').replace(/"/g, '');
     const estadoCTLimpio = (valores[4] || 'Desconocido').replace(/"/g, '');
     const clienteCorreoLimpio = (valores[5] || '').replace(/"/g, '');
-    const formaPagoLimpio = (valores[6] || 'Desconocido').replace(/"/g, '');
-    const fechaActLimpio = (valores[7] || '').replace(/"/g, '');
-    const fechaCorteLimpio = (valores[8] || '').replace(/"/g, '');
+    const formaPagoLimpio = (valores[7] || 'Desconocido').replace(/"/g, '');
+    const fechaActLimpio = (valores[8] || '').replace(/"/g, '');
+    const fechaCorteLimpio = (valores[9] || '').replace(/"/g, '');
 
     const resultado = {
       'Código': codigo,
