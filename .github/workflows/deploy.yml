@@ -36,7 +36,7 @@ jobs:
               echo "Fetching latest changes..."
               git reset --hard
               git fetch
-              git pull origin master
+              git pull origin main
               echo "Git repository reset and pulled successfully."
             fi
 
