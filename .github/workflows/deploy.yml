@@ -48,15 +48,7 @@ jobs:
             echo "NVM loaded."
 
             
-            # Verificar si el proceso existe en PM2 antes de intentar detenerlo
-            if pm2 list | grep -q "mongo_users"; then
-              echo "Deteniendo proceso existente..."
-              pm2 stop mongo_users || true
-              pm2 delete mongo_users || true
-            else
-              echo "No existe proceso mongo_users en PM2, continuando..."
-            fi
-            
+         
             # Actualiza los archivos de configuración
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
             echo "PORT=${{ secrets.PORT }}" >> .env
