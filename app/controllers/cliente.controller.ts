@@ -1,0 +1,51 @@
+import { Request, Response } from 'express';
+import { ClienteService } from '../services/cliente.service';
+import { successResponse, errorResponse } from '../utils/response';
+
+const clienteService = new ClienteService();
+
+export const getClientes = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clientes = await clienteService.getClientes();
+    successResponse(res, 200, '✅ Clientes obtenidos', clientes);
+  } catch (error: any) {
+    errorResponse(res, 500, '❌ Error al obtener clientes', error);
+  }
+};
+
+
+// Obtiene la info de un cliente por correo o teléfono
+
+export const get_data_client = async (req: Request, res: Response) => {
+  const { correo, telefono } = req.params;
+
+  try {
+    const cliente = await clienteService.buscarClientePorCorreoOTelefono(correo, telefono);
+
+    if (!cliente) {
+      errorResponse(res, 404, '❌ Cliente no encontrado');
+    }
+
+    successResponse(res, 200, '✅ Cliente encontrado', cliente);
+  } catch (error: any) {
+    errorResponse(res, 500, '❌ Error al buscar cliente', error);
+  }
+};
+
+
+export const updateTelefonoCliente = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { telefono } = req.body;
+  try {
+    const clienteActualizado = await clienteService.actualizarTelefonoCliente(id, telefono);
+
+    if (!clienteActualizado) {
+      errorResponse(res, 404, '❌ Cliente no encontrado');
+      return;
+    }
+
+    successResponse(res, 200, '✅ Teléfono del cliente actualizado', clienteActualizado);
+  } catch (error: any) {
+    errorResponse(res, 500, '❌ Error al actualizar teléfono del cliente', error);
+  }
+};
