@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Deploy to server
+      - name: Deploy to server MongoAPI
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -19,12 +19,34 @@ jobs:
           script: |
 
             echo "Iniciando despliegue en el servidor..." 
-            # Asegurarse de que las herramientas necesarias están disponibles
+
+            echo "Entrando a la carpeta del proyecto..."
+            if [ ! -d "/home/${{ secrets.SSH_USERNAME }}/api_project/mongo_clients" ]; then
+              echo "ERROR: El directorio no existe. Asegúrate de que el proyecto esté en la ruta correcta."
+              exit 1
+            else
+              # Navegar al directorio de la aplicación
+              cd /home/${{ secrets.SSH_USERNAME }}/api_project/mongo_clients || exit 1
+              # Limpiar archivos no rastreados antes de hacer pull
+              echo "Cleaning untracked files..."
+              git clean -f
+              echo "Untracked files cleaned."
+
+              # Ahora realizar el git pull
+              echo "Fetching latest changes..."
+              git reset --hard
+              git fetch
+              git pull origin master
+              echo "Git repository reset and pulled successfully."
+            fi
+
+
+            # Cargar nvm y Node.js
+            echo "Loading nvm..."
             export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Cargar NVM si está instalado
-            
-            # Navegar al directorio de la aplicación
-            cd /home/${{ secrets.SSH_USERNAME }}/api_project/mongo_clients
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            echo "NVM loaded."
+
             
             # Verificar si el proceso existe en PM2 antes de intentar detenerlo
             if pm2 list | grep -q "mongo_users"; then
