@@ -55,8 +55,7 @@ jobs:
             
             # Inicia la aplicación con PM2
             echo "Iniciando aplicación con PM2..."
-            pm2 npm run start --name mongo_users -- run start || true
-            
+            pm2 start npm --name "mongo_users" -- run dev            
             # Muestra estado de la aplicación
             pm2 status
             
