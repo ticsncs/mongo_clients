@@ -61,68 +61,9 @@ jobs:
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
             echo "PORT=${{ secrets.PORT }}" >> .env
             
-            # Obtén los últimos cambios
-            git fetch origin main
-            git reset --hard origin/main
-            
-            # Instala dependencias y tipos adicionales
-            npm ci
-            npm install --save-dev @types/cors
-            
-            # Configurar correctamente TypeScript para compilación
-            cat << EOF > tsconfig.json
-            {
-              "compilerOptions": {
-                "target": "ES2020",
-                "module": "commonjs",
-                "lib": ["es6", "dom"],
-                "allowJs": true,
-                "skipLibCheck": true,
-                "esModuleInterop": true,
-                "allowSyntheticDefaultImports": true,
-                "strict": false,
-                "forceConsistentCasingInFileNames": false,
-                "noFallthroughCasesInSwitch": false,
-                "moduleResolution": "node",
-                "resolveJsonModule": true,
-                "isolatedModules": false,
-                "noImplicitAny": false,
-                "outDir": "./dist",
-                "noEmit": false
-              },
-              "include": ["src/**/*"],
-              "exclude": ["node_modules"]
-            }
-            EOF
-            
-            # Compilar TypeScript a JavaScript
-            echo "Compilando TypeScript a JavaScript..."
-            ./node_modules/.bin/tsc
-            
-            # Verificar que la compilación fue exitosa y existe app.js
-            if [ ! -f "./dist/app.js" ]; then
-              echo "ERROR: Compilación fallida. No se encontró dist/app.js"
-              exit 1
-            fi
-            
-            # Crear archivo ecosystem.config.js para ejecutar JavaScript compilado
-            cat << EOF > ecosystem.config.js
-            module.exports = {
-              apps: [{
-                name: "mongo_users",
-                script: "./dist/app.js",
-                env: {
-                  NODE_ENV: "production",
-                  PORT: ${{ secrets.PORT }},
-                  MONGO_URI: "${{ secrets.MONGO_URI }}"
-                }
-              }]
-            };
-            EOF
-            
             # Inicia la aplicación con PM2
             echo "Iniciando aplicación con PM2..."
-            pm2 start ecosystem.config.js
+            pm2 npm run start --name mongo_users -- run start || true
             
             # Muestra estado de la aplicación
             pm2 status
