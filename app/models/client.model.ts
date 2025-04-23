@@ -16,8 +16,8 @@ const ClienteSchema: Schema = new Schema({
     unique: true,
     sparse: true, // Solo aplica unique si el campo existe
   },
-  correo: { type: String, required: true },
-  telefono: { type: String, required: true },
+  correo: { type: String },
+  telefono: { type: String },
 }, {
   timestamps: true,
   versionKey: false

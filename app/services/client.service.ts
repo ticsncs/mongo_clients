@@ -1,7 +1,14 @@
+import { Client } from 'socket.io/dist/client';
 import { ClienteModel } from '../models/client.model';
 import { ICliente } from '../models/client.model';
+interface ClienteDTO {
+  correo: string;
+  nombre?: string;
+  cedula?: string;
+  telefono?: string;
+}
 
-export class ClienteService {
+export class ClientService {
   async getClientes(): Promise<ICliente[]> {
     try {
       const clientes: ICliente[] = await ClienteModel.find().lean();
@@ -68,4 +75,36 @@ export class ClienteService {
     }
   }
 
+  async upsertCliente(data: ClienteDTO): Promise<string> {
+    const { correo, nombre, cedula, telefono } = data;
+    const updateData: any = { nombre, telefono };
+
+    let cliente;
+
+    if (cedula) {
+      cliente = await ClienteModel.findOne({ cedula });
+
+      if (cliente) {
+        // Si la cédula existe ➝ actualizamos ese cliente
+        cliente.set(updateData);
+        await cliente.save();
+        return cliente._id.toString();
+      }
+    }
+
+    // Si no existe la cédula ➝ buscamos por correo
+    if (cedula) updateData.cedula = cedula;
+
+    cliente = await ClienteModel.findOneAndUpdate(
+      { correo },
+      { $set: updateData },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    if (!cliente) throw new Error(`No se pudo guardar cliente con correo ${correo}`);
+    return cliente._id.toString();
+  }
 }
+
+
+

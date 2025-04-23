@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { CsvService } from '../services/csv.service';
+import { CsvProcessorService } from '../services/csv.service';
 import { successResponse,errorResponse} from '../utils/response';
 
 
@@ -13,7 +13,7 @@ export const odooContractCsv = async (req: Request, res: Response): Promise<void
     try {
         const startTime = Date.now(); // Start timing
 
-        const csvService = new CsvService();
+        const csvService = new CsvProcessorService(); // Instancia del servicio CSV
 
         const file = req.file; // multer coloca el archivo aquí
         
@@ -22,7 +22,7 @@ export const odooContractCsv = async (req: Request, res: Response): Promise<void
             errorResponse(res, 400, '❌ No se recibió ningún archivo CSV');
         }
 
-        await csvService.readCSVAndSaveOptimized(file.path);
+        await csvService.processCSV(file.path); // Procesar el archivo CSV
         
         const endTime = Date.now(); // End timing
         const executionTime = endTime - startTime; // Calculate execution time

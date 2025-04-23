@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { ClienteService } from '../services/cliente.service';
+import { ClientService } from '../services/client.service';
 import { successResponse, errorResponse } from '../utils/response';
 
-const clienteService = new ClienteService();
+const clienteService = new ClientService();
 
 export const getClientes = async (req: Request, res: Response): Promise<void> => {
   try {
