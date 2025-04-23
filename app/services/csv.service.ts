@@ -25,24 +25,27 @@ export class CsvProcessorService {
   async processCSV(filePath: string): Promise<void> {
     const transformStream = new Transform({
       objectMode: true,
-      transform: async (row, _, callback) => {
-        try {
-          const { correo, clienteId } = await this.getOrCreateCliente(row);
-
-          if (!correo || !row['Código']) return callback();
-
-          this.bulkOps.push(this.contratoService.buildUpdateOp(row, clienteId));
-
-          if (this.bulkOps.length >= this.bulkSize) {
-            await this.flushBulkOps();
+      transform: (row, _, callback) => {
+        this.limit(async () => {
+          try {
+            const { correo, clienteId } = await this.getOrCreateCliente(row);
+      
+            if (!correo || !row['Código']) return callback();
+      
+            this.bulkOps.push(this.contratoService.buildUpdateOp(row, clienteId));
+      
+            if (this.bulkOps.length >= this.bulkSize) {
+              await this.flushBulkOps();
+            }
+      
+            callback();
+          } catch (error: any) {
+            this.logger.error(`Fila fallida: ${error.message}`);
+            callback(error);
           }
-
-          callback();
-        } catch (error: any) {
-          this.logger.error(`Fila fallida: ${error.message}`);
-          callback(error);
-        }
+        });
       }
+      
     });
 
     await pipelineAsync(
