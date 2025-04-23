@@ -12,17 +12,17 @@ export interface IContrato extends Document {
   servicio_internet?: string;
   monto_deuda?: number;
   clienteId?: mongoose.Types.ObjectId; // Relación con Cliente
-
 }
 
 const ContratoSchema: Schema = new Schema({
-  codigo: { type: String, required: true, unique:true },
+  codigo: { type: String, required: true, unique: true },
   plan_internet: { type: String, required: true },
   estado_ct: { type: String, required: true },
-  tipo_plan: { type: String, 
+  tipo_plan: {
+    type: String,
     index: true,
     unique: true,
-    sparse: true, // Solo aplica unique si el campo existe
+    sparse: true,
   },
   fecha_inicio: { type: String },
   forma_pago: { type: String },
@@ -33,7 +33,14 @@ const ContratoSchema: Schema = new Schema({
   clienteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' }, // Relación con Cliente
 }, {
   timestamps: true,
-  versionKey: false
+  versionKey: false,
 });
 
-export const ContratoModel = mongoose.model<IContrato>('Contrato', ContratoSchema);
+ContratoSchema.statics.emitChange = (type: string, data: any) => {
+  if ((ContratoModel as any).io) {
+    (ContratoModel as any).io.emit('contrato-change', { type, data });
+  }
+};
+
+export const ContratoModel = mongoose.model<IContrato>('Contrato', ContratoSchema) as any;
+export default ContratoModel;
