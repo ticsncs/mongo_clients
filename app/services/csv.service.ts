@@ -11,9 +11,9 @@ import { LoggerService } from './logger.service';
 const pipelineAsync = promisify(pipeline);
 
 export class CsvProcessorService {
-  private limit = pLimit(15);
+  private limit = pLimit(20);
   private bulkOps: any[] = [];
-  private bulkSize = 1000;
+  private bulkSize = 2000;
   private clienteCache = new Map<string, string>();
 
   constructor(
