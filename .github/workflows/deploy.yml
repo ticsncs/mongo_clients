@@ -52,6 +52,18 @@ jobs:
             # Actualiza los archivos de configuración
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
             echo "PORT=${{ secrets.PORT }}" >> .env
+
+
+            APP_NAME="mongo_users"
+
+            if pm2 list | grep -q "$APP_NAME"; then
+              echo "🛑 Deteniendo y eliminando aplicación con PM2: $APP_NAME"
+              pm2 stop "$APP_NAME"
+              pm2 delete "$APP_NAME"
+            else
+              echo "ℹ️ La aplicación '$APP_NAME' no está registrada en PM2."
+            fi
+
             
             # Inicia la aplicación con PM2
             echo "Iniciando aplicación con PM2..."
