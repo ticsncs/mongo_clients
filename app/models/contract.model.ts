@@ -9,6 +9,8 @@ export interface IContrato extends Document {
   fecha_activacion: string;
   fecha_corte: string;
   estado_ct: string;
+  servicio_internet?: string;
+  monto_deuda?: number;
   clienteId?: mongoose.Types.ObjectId; // Relación con Cliente
 
 }
@@ -26,6 +28,8 @@ const ContratoSchema: Schema = new Schema({
   forma_pago: { type: String },
   fecha_activacion: { type: String },
   fecha_corte: { type: String },
+  servicio_internet: { type: String },
+  monto_deuda: { type: Number },
   clienteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente' }, // Relación con Cliente
 }, {
   timestamps: true,

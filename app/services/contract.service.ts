@@ -16,6 +16,8 @@ export class ContractService {
                 forma_pago: row['Forma de Pago']?.trim(),
                 fecha_activacion: row['Fecha Activacion']?.trim(),
                 fecha_corte: row['Fecha de Corte']?.trim(),
+                servicio_internet: row['Servicio Internet']?.trim(),
+                monto_deuda: row['Monto Deuda']?.trim(),
                 cliente: clienteId,
               },
             },

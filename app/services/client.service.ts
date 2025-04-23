@@ -51,7 +51,7 @@ export class ClientService {
       .select('nombre telefono correo contratos')
       .populate({
         path: 'contratos',
-        select: 'codigo plan_internet estado_ct forma_pago fecha_act fecha_corte',
+        select: 'codigo plan_internet estado_ct forma_pago fecha_act fecha_corte servicio_internet monto_deuda',
       })
       .lean();
 
