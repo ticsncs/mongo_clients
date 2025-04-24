@@ -5,14 +5,21 @@ import path from "path";
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     console.log("📥 Archivo recibido en multer:", file.originalname);
-    const name = file.originalname.split("_")[0]?.toLowerCase();
+
+    const nameParts = file.originalname.split("_");
+    const name = nameParts.length > 1 ? nameParts[0].toLowerCase() : null;
 
     const folderMap: Record<string, string> = {
       odoo: "./public/Odoo",
-      clientes: "./public/Odoo"
+      clientes: "./public/Odoo",
+      contracts: "./public/Odoo",  // Añade esta línea
+      pagos: "./public/Odoo",
     };
 
-    const targetFolder = folderMap[name];
+    console.log("🧩 Nombre clave extraído:", name);
+    const targetFolder = name ? folderMap[name] : null;
+
+    console.log("📁 Carpeta de destino:", targetFolder);
 
     if (!targetFolder) {
       return cb(new Error("Destino no válido"), "");
@@ -24,9 +31,11 @@ const storage = multer.diskStorage({
 
     cb(null, targetFolder);
   },
+
   filename: (req, file, cb) => {
     const nameParts = file.originalname.split("_");
-    cb(null, nameParts.slice(1).join("_"));
+    const filename = nameParts.length > 1 ? nameParts.slice(1).join("_") : file.originalname;
+    cb(null, filename);
   }
 });
 

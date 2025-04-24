@@ -1,3 +1,4 @@
+import { get } from 'http';
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICliente extends Document {
@@ -58,6 +59,14 @@ ClienteSchema.statics.emitChange = (type: string, data: any) => {
   }
 };
 
+export  async function getIdByEmail(correo: string): Promise<string | null> {
+  const cliente = await ClienteModel.findOne({ correo }).lean();
+  if (!cliente) {
+    return null;
+  }
+  return cliente;
+}
+ 
 
 export const ClienteModel = mongoose.model<ICliente>('Cliente', ClienteSchema) as any;
 // export default mongoose.model<ICliente>('Cliente', ClienteSchema);
