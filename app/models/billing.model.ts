@@ -1,8 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IBilling extends Document {
-  id_factura: string;
-  id_cliente: mongoose.Types.ObjectId;
   id_contrato: mongoose.Types.ObjectId;
   fecha_emision: string;
   precio_total: number;
@@ -11,8 +9,6 @@ export interface IBilling extends Document {
 }
 
 const BillingSchema: Schema = new Schema({
-  id_factura: { type: String, required: true },
-  id_cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente', required: true },
   id_contrato: { type: mongoose.Schema.Types.ObjectId, ref: 'Contrato', required: true },
   fecha_emision: { type: String, required: true },
   precio_total: { type: Number, required: true },

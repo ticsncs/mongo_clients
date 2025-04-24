@@ -16,6 +16,7 @@ export class CsvService {
       const bulkWriteInterval = 5000; // 5 segundos
       let pendingOps = 0;
 
+
       const flushBulk = async () => {
         if (contratoBulkOps.length > 0) {
           const batch = contratoBulkOps.splice(0, contratoBulkOps.length);

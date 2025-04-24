@@ -14,6 +14,7 @@ const storage = multer.diskStorage({
       clientes: "./public/Odoo",
       contracts: "./public/Odoo",  // Añade esta línea
       pagos: "./public/Odoo",
+      billings: "./public/Odoo",
     };
 
     console.log("🧩 Nombre clave extraído:", name);
@@ -33,10 +34,17 @@ const storage = multer.diskStorage({
   },
 
   filename: (req, file, cb) => {
-    const nameParts = file.originalname.split("_");
-    const filename = nameParts.length > 1 ? nameParts.slice(1).join("_") : file.originalname;
-    cb(null, filename);
+    const nameParts = file.originalname.split('_');
+    const dateNow = new Date().toISOString().replace(/:/g, '_');
+    
+    // Ejemplo: si originalname = "factura_cliente.csv", esto lo parte en ["factura", "cliente.csv"]
+    const baseName = nameParts[0]; // "factura"
+    const rest = nameParts.slice(1).join('_'); // "cliente.csv"
+  
+    const finalName = `${baseName}_${dateNow}_${rest}`;
+    cb(null, finalName);
   }
+
 });
 
 export const upload = multer({ storage });
