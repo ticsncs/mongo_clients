@@ -55,6 +55,7 @@ export const odooBillingCsv = async (req: Request, res: Response): Promise<void>
   
       // ✅ Obtener la estrategia y pasarla al procesador
       const strategy = CsvStrategyFactory.getStrategy('billing');
+      
       const csvProcessor = new CsvProcessorService(strategy);
 
     

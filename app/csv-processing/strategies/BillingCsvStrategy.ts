@@ -1,6 +1,10 @@
 import { ICsvStrategy } from '../ICsvStrategy';
 import { ContratoModel } from '../../models/contract.model';
 import { BillingModel } from '../../models/billing.model';
+import { obtenerTipoFactura } from '../../handlers/billing/billing-handler';
+import { downloadCSV } from '../../utils/dowload-csv';
+import { PuntosStrategyFactory } from '../../points-processing/billing-points/PointsStrategyFactory';
+
 
 interface LineaFactura {
     contrato: string;
@@ -9,6 +13,7 @@ interface LineaFactura {
 }
 
 interface FacturaAgrupada {
+    numeroFactura: string; // 🚀 Nuevo campo
     lineas: LineaFactura[];
     total: number;
 }
@@ -17,11 +22,11 @@ export class BillingCsvStrategy implements ICsvStrategy {
     private facturas: Map<string, FacturaAgrupada> = new Map();
 
     async processRow(row: any, context: Map<string, any>): Promise<void> {
-        const nombreCompleto = row['Nombre del socio a mostrar en la factura.']?.trim();
+        const numeroIdentificador = row['Número']?.trim();
         const lineaRaw = row['Líneas de factura']?.trim();
         const totalRaw = row['Total']?.trim();
 
-        if (!nombreCompleto || !lineaRaw || !totalRaw) return;
+        if (!numeroIdentificador || !lineaRaw || !totalRaw) return;
 
         const contratoMatch = lineaRaw.match(/\(CT-(\d+)\)/);
         const descripcionMatch = lineaRaw.match(/\)\s*(.*?)\/CT-/);
@@ -37,56 +42,81 @@ export class BillingCsvStrategy implements ICsvStrategy {
             monto: total,
         };
 
-        if (!this.facturas.has(contrato)) {
-            this.facturas.set(contrato, {
+        if (!this.facturas.has(numeroIdentificador)) { // 🚀 Usamos el número como key
+            this.facturas.set(numeroIdentificador, {
+                numeroFactura: numeroIdentificador,
                 lineas: [],
                 total: 0,
             });
         }
 
-        const factura = this.facturas.get(contrato)!;
+        const factura = this.facturas.get(numeroIdentificador)!;
         factura.lineas.push(lineaFactura);
         factura.total += total;
     }
 
-    async flush(): Promise<void> {
+    async flush(objectContext: Map<string, any>): Promise<void> {
         const fecha = new Date().toISOString();
         let contratosGuardados = 0;
         let contratosOmitidos = 0;
 
-        for (const [codigoContrato, factura] of this.facturas.entries()) {
-            console.log(`Procesando contrato ${codigoContrato} con total ${factura.total}`);
+        for (const [numeroFactura, factura] of this.facturas.entries()) {
+            console.log(`Procesando factura ${numeroFactura} con total ${factura.total}`);
             try {
-                const contrato = await ContratoModel.findOne({ codigo: codigoContrato });
-                console.log(`Buscando contrato ${codigoContrato}:`, contrato);
-
-
+                const contratoCodigo = factura.lineas[0].contrato;
+                const contrato = await ContratoModel.findOne({ codigo: contratoCodigo });
                 if (!contrato) {
-                    console.warn(`⚠️ Contrato ${codigoContrato} no encontrado.`);
+                    console.warn(`⚠️ Contrato ${contratoCodigo} no encontrado.`);
                     contratosOmitidos++;
                     continue;
                 }
-
                 const descripciones = factura.lineas.map(linea => linea.descripcion);
-
-                await BillingModel.create({
-                    id_contrato: contrato._id,
-                    fecha_emision: fecha,
-                    precio_total: factura.total,
+                const billingTemporal = {
                     detalle: descripciones,
-                });
-
-                contratosGuardados++;
-
+                    precio_total: factura.total,
+                  } as any;
+                  const activacionStrategy = PuntosStrategyFactory.getStrategy('activacion');
+                  const ventaStrategy = PuntosStrategyFactory.getStrategy('venta');
+                  // Evaluar estrategias
+                  const esActivacion = activacionStrategy.evaluar(billingTemporal);
+                  const esVenta = ventaStrategy.evaluar(billingTemporal);
+                  // Calcular puntos solo si corresponde
+                  const puntosActivacion = esActivacion ? activacionStrategy.calcularPuntos(billingTemporal) : 0;
+                  const puntosVenta = esVenta ? ventaStrategy.calcularPuntos(billingTemporal) : 0;
+                  const puntosTotales = puntosActivacion + puntosVenta;
+                  // Decidir si tiene puntos en general
+                  const hadPoints = puntosTotales > 0;
+                  console.log('🎯 Puntos totales para esta factura:', puntosTotales);
+                try {
+                    const billing = await BillingModel.create({
+                        id_factura: numeroFactura,
+                        id_contrato: contrato._id,
+                        fecha_emision: fecha,
+                        precio_total: factura.total,
+                        detalle: descripciones,
+                        givePoints: hadPoints,
+                      });
+                    console.log("📡 Requiere emitir socket:", billing.givePoints);
+                    obtenerTipoFactura(billing, BillingModel.emitChange.bind(BillingModel));
+                    const data = downloadCSV("PUNTOS POR ACTIVACION", "../../csv/activacion.csv", descripciones)
+                    console.log("📥 CSV descargado:", data);
+                    contratosGuardados++;
+                } catch (err: any) {
+                    if (err.code === 11000) {
+                        console.warn(`⚠️ Factura duplicada detectada (id_factura): ${numeroFactura}`);
+                        contratosOmitidos++;
+                    } else {
+                        console.error(`❌ Error al crear factura ${numeroFactura}:`, err);
+                        contratosOmitidos++;
+                    }
+                }
             } catch (err) {
-                console.error(`❌ Error al guardar factura de contrato ${codigoContrato}:`, err);
-                contratosOmitidos++; // por si hubo error
+                console.error(`❌ Error general al procesar factura ${numeroFactura}:`, err);
+                contratosOmitidos++;
             }
         }
 
         console.log(`✅ Se guardaron ${contratosGuardados} facturas.`);
-        console.log(`⚠️ Se omitieron ${contratosOmitidos} contratos no encontrados o fallidos.`);
+        console.log(`⚠️ Se omitieron ${contratosOmitidos} facturas duplicadas o con error.`);
     }
-
-
 }
