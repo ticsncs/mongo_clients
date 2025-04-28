@@ -1,4 +1,5 @@
 import { BillingCsvStrategy } from '../strategies/BillingCsvStrategy'; // Implementar BillingCsvStrategy
+import { PaymentCsvStrategy } from '../strategies/PaymentCsvStrategy';
 import { ICsvStrategy } from '../ICsvStrategy';
 
 export class CsvStrategyFactory {
@@ -8,8 +9,8 @@ export class CsvStrategyFactory {
                 return ;
             case 'billing':
                 return new BillingCsvStrategy(); // Implementar BillingCsvStrategy
-
-            // otros tipos en el futuro
+            case 'payment':
+                return new PaymentCsvStrategy(); // Implementar PaymentCsvStrategy
             default:
                 throw new Error(`Estrategia no implementada: ${type}`);
         }
