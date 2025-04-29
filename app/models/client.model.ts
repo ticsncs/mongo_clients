@@ -21,9 +21,16 @@ const ClienteSchema: Schema = new Schema({
   telefono: { type: String },
 }, {
   timestamps: true,
-  versionKey: false
+  versionKey: false,
+  toJSON:{ virtuals:true },
+  toObject:{ virtuals:true }
 });
 
+ClienteSchema.virtual('contratos', {
+  ref: 'Contrato',
+  localField: '_id',
+  foreignField: 'clienteId',  
+});
 
 
 
