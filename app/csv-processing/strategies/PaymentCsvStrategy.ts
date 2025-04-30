@@ -2,9 +2,20 @@ import { ICsvStrategy } from '../ICsvStrategy';
 import { PaymentModel } from '../../models/payment.model';
 import { procesarPago } from '../../handlers/payments/handler-payment';
 import ContratoModel from '../../models/contract.model';
+import { normalizar } from '../../utils/normalize';
+import { CSVDownloader } from '../../utils/dowload-csv'; // ✅ Importa tu clase aquí
+
 
 export class PaymentCsvStrategy implements ICsvStrategy {
   //private payments: Map<string, IPayment> = new Map();
+  private csv: CSVDownloader;
+
+  constructor() {
+    // Creamos el CSV de pagos cuando instanciamos la estrategia
+    const fileName = CSVDownloader.generateSafeFileName('pagos');
+    this.csv = new CSVDownloader(fileName);
+  }
+
 
   async processRow(row: any, context: Map<string, any>): Promise<void> {
     const contratoRaw = row['Contrato']?.trim();
@@ -38,7 +49,7 @@ export class PaymentCsvStrategy implements ICsvStrategy {
       await PaymentModel.create({
         contrato: contrato,
         fechaPago: fechaPago,
-        diario: diario,
+        diario: normalizar(diario),
         cliente: cliente,
         importe: parseFloat(importe), // lo guardamos como número
         estado: estado
@@ -46,17 +57,31 @@ export class PaymentCsvStrategy implements ICsvStrategy {
 
       // ✅ Procesamos el pago para ver si es puntual o en gracia
       const contratoDb = await ContratoModel.findOne({ codigo: contrato });
-        if (!contratoDb) {
-            console.warn(`⚠️ Contrato no encontrado en la base de datos: ${contrato}`);
+      const pagoDb = await PaymentModel.findOne({ contrato: contrato });
+      if (!contratoDb) {
+            console.warn(`⚠️ Contrato no encoontrado en la base de datos: ${contrato}`);
             return;
         }
 
-        await procesarPago(contratoDb, fechaPago);
+        const resultado = await procesarPago(contratoDb, fechaPago, pagoDb.diario);
+
+        if (resultado) {
+            this.csv.addRow(
+                resultado.contrato,
+            );
+        }
+        
+
 
       console.log(`✅ Pago registrado exitosamente para contrato ${contrato}`);
       
     } catch (error) {
       console.error(`❌ Error al procesar la fila para contrato ${contrato}: ${error}`);
     }
+  }
+  async flush(context: Map<string, any>): Promise<void> {
+    // Al final guardamos el CSV
+    await this.csv.finalize();
+    console.log('📥 CSV de pagos guardado exitosamente.');
   }
 }

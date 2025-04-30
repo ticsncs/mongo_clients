@@ -18,10 +18,11 @@ export const getClientes = async (req: Request, res: Response): Promise<void> =>
 
 export const get_data_client = async (req: Request, res: Response) => {
   const { correo, telefono } = req.params;
-
+  console.log(correo, telefono)
   try {
     const cliente = await clienteService.buscarClientePorCorreoOTelefono(correo, telefono);
-
+    
+    console.log(cliente)
     if (!cliente) {
       errorResponse(res, 404, '❌ Cliente no encontrado');
     }

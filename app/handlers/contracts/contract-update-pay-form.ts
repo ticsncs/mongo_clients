@@ -1,5 +1,6 @@
 import { ContractRule } from '../../types/contract-rule';
 import { normalizar } from '../../utils/normalize';
+import { csvByChangeType } from './change-csv-emitters';
 
 const formasImportantes = ['tarjeta', 'debito'];
 
@@ -8,13 +9,13 @@ export const isCambioFormaPagoRelevante: ContractRule = (prev, curr) => {
   const formaNueva = normalizar(curr.forma_pago);
 
   const esCambio = formaPrev !== formaNueva;
-
   const contieneFormaImportante = formasImportantes.some(f => formaNueva.includes(f));
 
   const cambioValido = esCambio && formaPrev === 'efectivo' && contieneFormaImportante;
 
-  console.log('🔍 Forma de pago anterior:', formaPrev, 'Forma de pago nueva:', formaNueva);
-  console.log('🔍 ¿Contiene forma importante?', contieneFormaImportante);
+  if (cambioValido) {
+    csvByChangeType.forma_pago.addRow(curr.codigo);
+  }
 
   return cambioValido;
 };

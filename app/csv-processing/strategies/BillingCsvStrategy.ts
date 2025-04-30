@@ -2,7 +2,6 @@ import { ICsvStrategy } from '../ICsvStrategy';
 import { ContratoModel } from '../../models/contract.model';
 import { BillingModel } from '../../models/billing.model';
 import { obtenerTipoFactura } from '../../handlers/billing/billing-handler';
-import { downloadCSV } from '../../utils/dowload-csv';
 import { PuntosStrategyFactory } from '../../points-processing/billing-points/PointsStrategyFactory';
 
 
@@ -98,8 +97,6 @@ export class BillingCsvStrategy implements ICsvStrategy {
                       });
                     console.log("📡 Requiere emitir socket:", billing.givePoints);
                     obtenerTipoFactura(billing, BillingModel.emitChange.bind(BillingModel));
-                    const data = downloadCSV("PUNTOS POR ACTIVACION", "../../csv/activacion.csv", descripciones)
-                    console.log("📥 CSV descargado:", data);
                     contratosGuardados++;
                 } catch (err: any) {
                     if (err.code === 11000) {
