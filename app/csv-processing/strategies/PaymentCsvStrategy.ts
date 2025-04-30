@@ -1,11 +1,10 @@
 import { ICsvStrategy } from '../ICsvStrategy';
 import { PaymentModel } from '../../models/payment.model';
-import { IPayment } from '../../models/payment.model';
 import { procesarPago } from '../../handlers/payments/handler-payment';
 import ContratoModel from '../../models/contract.model';
 
 export class PaymentCsvStrategy implements ICsvStrategy {
-  private payments: Map<string, IPayment> = new Map();
+  //private payments: Map<string, IPayment> = new Map();
 
   async processRow(row: any, context: Map<string, any>): Promise<void> {
     const contratoRaw = row['Contrato']?.trim();

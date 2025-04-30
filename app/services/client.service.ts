@@ -1,4 +1,4 @@
-import { Client } from 'socket.io/dist/client';
+
 import { ClienteModel } from '../models/client.model';
 import { ICliente } from '../models/client.model';
 interface ClienteDTO {
@@ -165,7 +165,8 @@ export class ClientService {
       
       // Recuperar los IDs de los documentos afectados
       // Nota: Esto es específico para MongoDB/Mongoose
-      const insertedIds = result.upsertedIds || {};
+      
+      //const insertedIds = result.upsertedIds || {};
       
       // Obtener los IDs de los documentos que fueron actualizados o insertados
       // Necesitamos buscar los IDs de los actualizados ya que bulkWrite no los devuelve directamente

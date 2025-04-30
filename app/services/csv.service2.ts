@@ -1,6 +1,4 @@
-import fs from 'fs';
 import { createReadStream } from 'fs';
-import path from 'path';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import csv from 'csv-parser';

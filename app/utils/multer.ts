@@ -1,6 +1,5 @@
 import multer from "multer";
 import fs from "fs";
-import path from "path";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -13,7 +12,7 @@ const storage = multer.diskStorage({
       odoo: "./public/Odoo",
       clientes: "./public/Odoo",
       contracts: "./public/Odoo",  // Añade esta línea
-      pagos: "./public/Odoo",
+      payments: "./public/Odoo",
       billings: "./public/Odoo",
     };
 

@@ -1,4 +1,3 @@
-import { get } from 'http';
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICliente extends Document {

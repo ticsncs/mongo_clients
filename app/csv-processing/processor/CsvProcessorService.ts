@@ -1,4 +1,4 @@
-import fs from 'fs';
+
 import { createReadStream } from 'fs';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
