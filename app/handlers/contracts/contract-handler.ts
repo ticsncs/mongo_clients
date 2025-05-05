@@ -6,8 +6,8 @@ export async function handleContratoUpdate(
   updatedDoc: IContrato,
   rules: ContractRule[],
   emit: (type: string, data: any) => void
-) {
-  if (!prevDoc) return;
+): Promise<boolean> {
+  if (!prevDoc) return false;
 
   let huboCambio = false;
 
@@ -15,14 +15,12 @@ export async function handleContratoUpdate(
     const cambio = rule(prevDoc, updatedDoc);
     if (cambio) {
       huboCambio = true;
-      // 👆 La lógica interna de cada regla ya guarda el código en su CSV
     }
   }
 
   if (huboCambio) {
-    console.log('📣 Cambios relevantes detectados. Emitiendo...');
-    emit('update', updatedDoc);
-  } else {
-    console.log('ℹ️ Ningún cambio relevante. No se emite');
+    emit('update', updatedDoc); // puede seguir siendo útil
   }
+
+  return huboCambio;
 }

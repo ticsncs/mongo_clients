@@ -91,16 +91,25 @@ export class CsvService {
 
               const contratoExistente = await ContratoModel.findOne({ codigo }).lean();
               if (contratoExistente) {
+
                 const reglas = [isCambioFormaPagoRelevante, isCambioPlanRelevante];
-                await handleContratoUpdate(
+                const contratoSimulado = structuredClone(contratoExistente); // o JSON.parse(JSON.stringify(...))
+                Object.assign(contratoSimulado, nuevosDatos);
+
+                const huboCambio = await handleContratoUpdate(
                   contratoExistente,
-                  { ...contratoExistente, ...nuevosDatos },
+                  contratoSimulado,
                   reglas,
+                  
                   (type, data) => {
-                    totalCambio++;
                     console.log(`📤 Emitiendo cambio tipo '${type}' para contrato ${data.codigo}`);
                   }
                 );
+
+                if (huboCambio) {
+                  totalCambio++;
+                  console.log('📤 Contrato actualizado:', nuevosDatos);
+                }
               }
 
               contratoBulkOps.push({

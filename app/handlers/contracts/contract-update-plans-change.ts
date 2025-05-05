@@ -3,15 +3,20 @@ import { normalizar } from '../../utils/normalize';
 import { csvByChangeType } from './change-csv-emitters';
 
 const PrioridadPlanes: Record<string, number> = {
-  'plan básico': 0,
-  'plan ideal': 1,
-  'plan premier': 2,
-  'plan nitro': 3,
+  'plan básico gpon': 0,
+  'plan básico': 1,
+  'plan ideal': 2,
+  'plan ideal+': 3,
+  'plan premier': 4,
+  'plan premier+': 5,
+  'plan nitro': 6,
 };
 
 function getPrioridad(plan: string | undefined): number {
   const key = normalizar(plan);
-  return PrioridadPlanes[key] ?? -1;
+  const prioridad = PrioridadPlanes[key];
+  console.log('🔍 Plan:', plan, '| Key:', key, '| Prioridad:', prioridad);
+  return prioridad ?? -1;
 }
 
 export const isCambioPlanRelevante: ContractRule = (prev, curr) => {
@@ -20,7 +25,11 @@ export const isCambioPlanRelevante: ContractRule = (prev, curr) => {
 
   const cambio = nuevo > anterior;
 
+  console.log("➡️ Comparando plan anterior vs nuevo:", anterior, "→", nuevo);
+  console.log("¿Cambio válido?", cambio);
+
   if (cambio) {
+    console.log("🟢 Agregando por actualizacion de plan:", curr.codigo);
     csvByChangeType.plan_internet.addRow(curr.codigo);
   }
 
