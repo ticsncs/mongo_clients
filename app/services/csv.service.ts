@@ -139,7 +139,11 @@ export class CsvService {
               console.log('✅ Proceso optimizado finalizado.');
               await csvByChangeType.forma_pago.finalize();
               await csvByChangeType.plan_internet.finalize();
+                            await csvByChangeType.flushAll();
+
               resolve();
+
+
             }
           }, 500);
         })
@@ -148,5 +152,6 @@ export class CsvService {
           reject(err);
         });
     });
+
   }
 }

@@ -3,7 +3,7 @@ import { ContratoModel } from '../../models/contract.model';
 import { BillingModel } from '../../models/billing.model';
 import { obtenerTipoFactura } from '../../handlers/billing/billing-handler';
 import { PuntosStrategyFactory } from '../../points-processing/billing-points/PointsStrategyFactory';
-
+import { csvBilling } from '../../handlers/billing/csv-billing'
 
 interface LineaFactura {
     contrato: string;
@@ -86,6 +86,12 @@ export class BillingCsvStrategy implements ICsvStrategy {
                   // Decidir si tiene puntos en general
                   const hadPoints = puntosTotales > 0;
                   console.log('🎯 Puntos totales para esta factura:', puntosTotales);
+                  if (esActivacion) {
+  csvBilling.activaciones.addRow(contrato.codigo);
+}
+if (esVenta && puntosVenta > 0) {
+  csvBilling.ventas.addRow(contrato.codigo, puntosVenta.toString());
+}
                 try {
                     const billing = await BillingModel.create({
                         id_factura: numeroFactura,
@@ -115,5 +121,8 @@ export class BillingCsvStrategy implements ICsvStrategy {
 
         console.log(`✅ Se guardaron ${contratosGuardados} facturas.`);
         console.log(`⚠️ Se omitieron ${contratosOmitidos} facturas duplicadas o con error.`);
+
+        await csvBilling.flushAll();
+
     }
 }

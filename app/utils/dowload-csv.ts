@@ -2,14 +2,15 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Clase para generar CSVs con comillas alrededor de cada valor
+ * Clase para generar CSVs con múltiples columnas
  */
 export class CSVDownloader {
   private filePath: string;
   private fileStream: fs.WriteStream;
-  private headers: string[] = ['Código-CT'];
+  private headers: string[];
 
-  constructor(fileName: string) {
+  constructor(fileName: string, headers: string[] = ['Código-CT']) {
+    this.headers = headers;
     const outputDir = path.resolve('public', 'exports');
 
     try {
@@ -21,30 +22,30 @@ export class CSVDownloader {
       throw new Error('No se pudo crear la carpeta para exportar el CSV.');
     }
 
-    // ✅ No modificar el fileName, lo usamos directamente
     this.filePath = path.join(outputDir, fileName);
-
     this.fileStream = fs.createWriteStream(this.filePath, { flags: 'w' });
 
     // ✅ Escribir los headers entre comillas
     this.fileStream.write(this.headers.map(this.escapeValue).join(',') + '\n');
   }
 
+  public getPath(): string {
+    return this.filePath;
+  }
 
   /**
-   * Agrega una nueva fila al CSV
+   * Agrega una nueva fila al CSV con múltiples columnas
    */
-  public addRow(codigo: string): void {
-    if (!this.fileStream) {
-      throw new Error('El archivo CSV no está inicializado.');
-    }
-
-    const values = [
-      this.escapeValue(codigo),
-    ];
-
-    this.fileStream.write(values.join(',') + '\n');
+  public addRow(...values: string[]): void {
+  if (!fs.existsSync(this.filePath)) {
+    console.warn(`⚠️ Archivo CSV eliminado: ${this.filePath}. Se volverá a crear.`);
+    this.fileStream = fs.createWriteStream(this.filePath, { flags: 'w' });
+    this.fileStream.write(this.headers.map(this.escapeValue).join(',') + '\n'); // reescribe encabezado
   }
+
+  const row = values.map(this.escapeValue).join(',');
+  this.fileStream.write(row + '\n');
+}
 
   /**
    * Finaliza y cierra el CSV correctamente
@@ -69,7 +70,7 @@ export class CSVDownloader {
     if (value.includes('"')) {
       value = value.replace(/"/g, '""'); // Escape interno
     }
-    return `"${value}"`; // Rodearlo de comillas
+    return `"${value}"`; // Rodeado de comillas
   }
 
   /**
@@ -79,6 +80,6 @@ export class CSVDownloader {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     return `${baseName}-${timestamp}.csv`;
   }
-
 }
+
 export default CSVDownloader;

@@ -4,6 +4,7 @@ import { procesarPago } from '../../handlers/payments/handler-payment';
 import ContratoModel from '../../models/contract.model';
 import { normalizar } from '../../utils/normalize';
 import { CSVDownloader } from '../../utils/dowload-csv'; // ✅ Importa tu clase aquí
+    import { csvByPagoCategoria } from '../../handlers/payments/csvByPagoCategoria';
 
 
 export class PaymentCsvStrategy implements ICsvStrategy {
@@ -80,8 +81,9 @@ export class PaymentCsvStrategy implements ICsvStrategy {
     }
   }
   async flush(context: Map<string, any>): Promise<void> {
-    // Al final guardamos el CSV
-    await this.csv.finalize();
-    console.log('📥 CSV de pagos guardado exitosamente.');
-  }
+  // Al finalizar todo el procesamiento de pagos
+  await csvByPagoCategoria.flushAll();
+
+  console.log('✅ Todos los CSVs de pagos generados y enviados correctamente.');
+}
 }

@@ -1,6 +1,9 @@
 import { ICsvStrategy } from '../ICsvStrategy';
 import { ContratoModel } from '../../models/contract.model';
 import { CSVDownloader } from '../../utils/dowload-csv';
+import { uploadCSVFile } from '../../utils/send-file-csv';
+import fs from 'fs';
+import path from 'path';
 
 export class ContractCsvStrategy implements ICsvStrategy {
   private csv: CSVDownloader;
@@ -61,6 +64,21 @@ export class ContractCsvStrategy implements ICsvStrategy {
 
   async flush(context: Map<string, any>): Promise<void> {
     await this.csv.finalize();
+
+    const filePath = this.csv.getPath(); // Asegúrate que CSVDownloader tenga este método
+    const fileName = path.basename(filePath);
+    const fileStream = fs.createReadStream(filePath);
+
+    const title = 'Carga Masiva Contratos';
+    const category = 9;
+    await uploadCSVFile({
+      title,
+      category,
+      file: fileStream,
+      fileName,
+    });
+
+
     console.log('✅ CSV de contratos generado exitosamente.');
   }
 }
