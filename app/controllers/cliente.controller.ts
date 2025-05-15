@@ -17,10 +17,10 @@ export const getClientes = async (req: Request, res: Response): Promise<void> =>
 // Obtiene la info de un cliente por correo o teléfono
 
 export const get_data_client = async (req: Request, res: Response) => {
-  const { correo, telefono } = req.params;
-  console.log(correo, telefono)
+  const { correo } = req.params;
+  console.log(correo)
   try {
-    const cliente = await clienteService.buscarClientePorCorreoOTelefono(correo, telefono);
+    const cliente = await clienteService.buscarClientePorCorreo(correo);
     
     console.log(cliente)
     if (!cliente) {

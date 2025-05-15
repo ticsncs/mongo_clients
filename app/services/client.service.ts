@@ -48,10 +48,10 @@ export class ClientService {
   }
 
 
-  async buscarClientePorCorreoOTelefono(correo: string, telefono: string): Promise<ICliente | null> {
+  async buscarClientePorCorreo(correo: string): Promise<ICliente | null> {
     try {
       const cliente = await ClienteModel.findOne({
-        $or: [{ correo }, { telefono }],
+        $or: [{ correo }],
       })
       .select('nombre telefono correo contratos')
       .populate({
