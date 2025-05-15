@@ -47,8 +47,9 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             echo "NVM loaded."
 
+            echo "Instalando dependencias..."
+            npm install
             
-         
             # Actualiza los archivos de configuración
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" > .env
             echo "PORT=${{ secrets.PORT }}" >> .env

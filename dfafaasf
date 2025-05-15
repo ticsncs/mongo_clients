@@ -1,0 +1,29 @@
+[33mcommit 2925c17ba4e6179ae9b8f82cdefa0525155dedcf[m
+Author: Nettplus <contabilidad@nettplus.net>
+Date:   Tue Apr 22 15:02:07 2025 -0500
+
+    Lista la nueva version de APIMongoClients
+
+[33mcommit f4aafc202f9a1706dac5c84b53b55f9eabf08b22[m
+Author: leninfabricio29 <leninfabricio7@gmail.com>
+Date:   Fri Apr 4 17:33:07 2025 -0500
+
+    Implementación de Logs básicos
+
+[33mcommit c035e6aa09554d1311d1b4d7fff0305ba2e3eb15[m
+Author: serverproyectos <byron.herrera@unl.edu.ec>
+Date:   Fri Apr 4 09:26:08 2025 -0500
+
+    CAMBIOS
+
+[33mcommit 55279e6d862421e1c4774e6936454230065c213d[m
+Author: leninfabricio29 <leninfabricio7@gmail.com>
+Date:   Fri Apr 4 09:02:08 2025 -0500
+
+    Actualizacion CSV
+
+[33mcommit 10c95df671cbff88f2d319ea9dbd757023a1bd73[m
+Author: leninfabricio29 <leninfabricio7@gmail.com>
+Date:   Wed Apr 2 11:51:37 2025 -0500
+
+    Primera version API
