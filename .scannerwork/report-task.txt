@@ -1,0 +1,6 @@
+projectKey=An-lisis-Mongo_Clients_API
+serverUrl=http://localhost:9000
+serverVersion=25.5.0.107428
+dashboardUrl=http://localhost:9000/dashboard?id=An-lisis-Mongo_Clients_API
+ceTaskId=4287ba22-9c79-4da2-9fd0-295c3d9c58f4
+ceTaskUrl=http://localhost:9000/api/ce/task?id=4287ba22-9c79-4da2-9fd0-295c3d9c58f4

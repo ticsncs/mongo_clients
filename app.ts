@@ -4,7 +4,6 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import mongoose from 'mongoose';
 import path from 'path';
 import morganBody from 'morgan-body';
 import { Writable } from 'stream';

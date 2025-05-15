@@ -40,10 +40,10 @@ export class CSVDownloader {
   if (!fs.existsSync(this.filePath)) {
     console.warn(`⚠️ Archivo CSV eliminado: ${this.filePath}. Se volverá a crear.`);
     this.fileStream = fs.createWriteStream(this.filePath, { flags: 'w' });
-    this.fileStream.write(this.headers.map(this.escapeValue).join(',') + '\n'); // reescribe encabezado
+this.fileStream.write(this.headers.map(this.escapeValue).join(';') + '\n');
   }
 
-  const row = values.map(this.escapeValue).join(',');
+const row = values.map(this.escapeValue).join(';');
   this.fileStream.write(row + '\n');
 }
 

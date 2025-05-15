@@ -7,7 +7,7 @@ import { CsvStrategyFactory } from '../csv-processing/factory/CsvStrategyFactory
 
 export const greet = (req: Request, res: Response): void => {
   const name = req.query.name || 'World';
-  successResponse(res, 200, `Hello ${name}!`);
+  successResponse(res, 200, `Hello ${name.toString}!`);
 };
 
 

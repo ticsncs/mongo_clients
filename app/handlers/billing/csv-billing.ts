@@ -31,7 +31,7 @@ export const csvBilling = {
       {
         csv: ventasInstance,
         title: 'Puntos por venta de productos',
-        category: 8,
+        category: 9,
       },
       {
         csv: activacionesInstance,
