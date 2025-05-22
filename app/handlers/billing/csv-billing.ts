@@ -31,12 +31,12 @@ export const csvBilling = {
       {
         csv: ventasInstance,
         title: 'Puntos por venta de productos',
-        category: 9,
+        category: "COMPRA DE PRODUCTOS",
       },
       {
         csv: activacionesInstance,
         title: 'Puntos por activación de Zapping/Go Max',
-        category: 19,
+        category: "ZAPPING/GO MAX",
       },
     ];
 

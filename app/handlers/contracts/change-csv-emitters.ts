@@ -25,13 +25,13 @@ export const csvByChangeType = {
     const uploads = [
       {
         csv: formaPagoCsv,
-        title: 'Cambios de Forma de Pago',
-        category: 10,
+        title: 'Puntos por Cambio de Forma de Pago',
+        category: "CAMBIO DE FORMA DE PAGO",
       },
       {
         csv: planCsv,
-        title: 'Cambios de Plan de Internet',
-        category: 13,
+        title: 'Putos por subir de Plan Internet',
+        category: "SUBIR PLAN",
       },
     ];
 

@@ -61,31 +61,31 @@ export const csvByPagoCategoria = {
       {
         csv: efectivoPuntual,
         title: 'Pagos Puntuales en Efectivo',
-        category: 2,
+        category: "PAGO PUNTUAL EN EFECTIVO",
       },
       {
         csv: efectivoGracia,
-        title: 'Pagos en Gracia en Efectivo',
+        title: 'PAGO PERIODO DE GRACIA EFECTIVO',
         category: 3,
       },
       {
         csv: digitalesPuntual,
-        title: 'Pagos Puntuales Digitales',
+        title: 'PAGO PUNTUAL MEDIOS DIGITALES',
         category: 4,
       },
       {
         csv: digitalesGracia,
-        title: 'Pagos en Gracia Digitales',
+        title: 'PAGO PERIODO DE GRACIA MEDIOS DIGITALES',
         category: 5,
       },
       {
         csv: transferencia,
-        title: 'Pagos por Transferencia',
+        title: 'PAGO TRANSFERENCIA',
         category: 6,
       },
       {
         csv: debito,
-        title: 'Pagos por Débito Bancario',
+        title: 'PAGO POR DÉBITO BANCARIO',
         category: 7,
       },
     ];
