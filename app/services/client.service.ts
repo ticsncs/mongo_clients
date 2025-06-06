@@ -67,14 +67,28 @@ export class ClientService {
     }
   }
 
-  async buscarClientesPorCorreos(correos: string[]): Promise<ICliente[]> {
+ async buscarClientesPorCorreos(correos: string[]): Promise<ICliente[]> {
     // Ejemplo con Mongoose:
-    const clientes = await ClienteModel.find({
-      correo: { $in: correos }
-    }).select('correo -_id'); // Solo selecciona el campo correo
-    
-    return clientes;
-  }
+    if (!Array.isArray(correos) || correos.length === 0) {
+      throw new Error('Se requiere un array de correos');
+    }
+    try {
+      const clientes = await ClienteModel.find({
+        correo: { $in: correos }
+      })
+      .select('nombre telefono correo contratos')
+      .populate({
+        path: 'contratos',
+        select: 'codigo plan_internet estado_ct forma_pago fecha_act fecha_corte servicio_internet monto_deuda',
+      })
+      .lean();
+      
+      return clientes;
+    }
+    catch (error: any) {
+      throw new Error("Error al buscar clientes por correos:"+ error.message);
+    }
+  }
 
   async actualizarTelefonoCliente(id: string, nuevoTelefono: string): Promise<ICliente | null> {
     try {
