@@ -50,3 +50,24 @@ export const updateTelefonoCliente = async (req: Request, res: Response): Promis
     errorResponse(res, 500, '❌ Error al actualizar teléfono del cliente', error);
   }
 };
+
+
+// Nueva función bulk
+export const verificarClientesPorCorreoBulk = async (req: Request, res: Response): Promise<void> => {
+  const { emails } = req.body;
+
+  if (!Array.isArray(emails) || emails.length === 0) {
+    errorResponse(res, 400, '❌ Se requiere un array de correos');
+    return;
+  }
+
+  try {
+    const clientes = await clienteService.buscarClientesPorCorreos(emails); // Debes implementar esta función
+    const existentes = clientes.map(c => c.correo);
+    const resultado = Object.fromEntries(emails.map(email => [email, existentes.includes(email)]));
+    successResponse(res, 200, '✅ Verificación completada', resultado);
+  } catch (error: any) {
+    errorResponse(res, 500, '❌ Error al verificar correos', error);
+  }
+};
+

@@ -1,4 +1,5 @@
 
+import path from 'path';
 import { ClienteModel } from '../models/client.model';
 import { ICliente } from '../models/client.model';
 interface ClienteDTO {
@@ -64,6 +65,15 @@ export class ClientService {
     } catch (error: any) {
       throw new Error(`Error al buscar cliente: ${error.message}`);
     }
+  }
+
+  async buscarClientesPorCorreos(correos: string[]): Promise<ICliente[]> {
+    // Ejemplo con Mongoose:
+    const clientes = await ClienteModel.find({
+      correo: { $in: correos }
+    }).select('correo -_id'); // Solo selecciona el campo correo
+    
+    return clientes;
   }
 
   async actualizarTelefonoCliente(id: string, nuevoTelefono: string): Promise<ICliente | null> {
