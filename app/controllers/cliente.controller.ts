@@ -61,13 +61,28 @@ export const verificarClientesPorCorreoBulk = async (req: Request, res: Response
     return;
   }
 
+  // Sanitizar y validar correos
+  const sanitizedEmails = emails
+    .map(email => email.toString().toLowerCase().trim())
+    .filter(email => {
+      // Expresión regular para validar formato de correo
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    });
+
+  if (sanitizedEmails.length === 0) {
+    errorResponse(res, 400, '❌ No hay correos válidos para verificar');
+    return;
+  }
+
   try {
-    const clientes = await clienteService.buscarClientesPorCorreos(emails); // Debes implementar esta función
-    const existentes = clientes.map(c => c.correo);
-    const resultado = Object.fromEntries(emails.map(email => [email, existentes.includes(email)]));
+    const clientes = await clienteService.buscarClientesPorCorreos(sanitizedEmails);
+    const existentes = clientes.map(c => c.correo.toLowerCase());
+    const resultado = Object.fromEntries(
+      sanitizedEmails.map(email => [email, existentes.includes(email)])
+    );
     successResponse(res, 200, '✅ Verificación completada', resultado);
   } catch (error: any) {
     errorResponse(res, 500, '❌ Error al verificar correos', error);
   }
 };
-
