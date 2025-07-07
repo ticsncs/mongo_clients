@@ -22,7 +22,7 @@ export const uploadCSVFile = async ({
     formData.append('category', String(category));
     formData.append('csv_file', file, fileName);
 
-    const baseUrl = process.env.API_SOLNUS ;
+    const baseUrl = process.env.API_APP_NETTPLUS ;
     const endpoint = `${baseUrl}/clients/masspointsload/`;
 
     const token = process.env.API_TOKEN;
