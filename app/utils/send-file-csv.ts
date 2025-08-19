@@ -43,17 +43,28 @@ export const uploadCSVFile = async ({
     }
 
     // Log tamaño del archivo si es posible
-    if ('path' in file && typeof (file as any).path === 'string') {
-      const fs = require('fs');
-      try {
-        const stats = fs.statSync((file as any).path);
-        console.log('Tamaño del archivo a enviar:', stats.size, 'bytes');
-      } catch (err) {
-        console.warn('No se pudo obtener el tamaño del archivo:', err.message);
-      }
-    } else {
-      console.warn('No se puede determinar el tamaño del archivo (no es un stream de archivo)');
-    }
+          // Validar que el archivo tiene más de una fila antes de enviarlo
+          let fileHasMoreThanOneRow = false;
+          if ('path' in file && typeof (file as any).path === 'string') {
+            const fs = require('fs');
+            try {
+              const content = fs.readFileSync((file as any).path, 'utf8');
+              const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
+              if (lines.length > 1) {
+                fileHasMoreThanOneRow = true;
+              }
+              console.log('Cantidad de filas en el archivo:', lines.length);
+            } catch (err) {
+              console.warn('No se pudo leer el archivo para validar filas:', err.message);
+            }
+          } else {
+            console.warn('No se puede determinar el número de filas del archivo (no es un stream de archivo)');
+          }
+
+          if (!fileHasMoreThanOneRow) {
+            console.warn('El archivo no tiene más de una fila. No se enviará la petición.');
+            return { error: 'El archivo no tiene más de una fila. No se envió la petición.' };
+          }
 
     const baseUrl = process.env.API_APP_NETTPLUS;
     const endpoint = `${baseUrl}/clients/masspointsload/`;
