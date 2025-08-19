@@ -24,9 +24,10 @@ export const uploadCSVFile = async ({
 
     const baseUrl = process.env.API_APP_NETTPLUS ;
     const endpoint = `${baseUrl}/clients/masspointsload/`;
+    console.log("Enviando petición a:", endpoint);
 
     const token = process.env.API_TOKEN;
-    console.log("token# *****************************",token)
+    console.log(token)
 if (!token) {
   throw new Error('⚠️ API_TOKEN no está definido en el archivo .env');
 }
@@ -38,7 +39,6 @@ if (!token) {
   },
 });
 
-    console.log('✅ Archivo CSV subido correctamente:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('❌ Error al subir el archivo:', error.message);

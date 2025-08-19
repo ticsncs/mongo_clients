@@ -45,11 +45,7 @@ export const csvByChangeType = {
 
       await uploadCSVFile({ title, category, file: fileStream, fileName });
       console.log(`📤 CSV subido correctamente: ${title}`);
-      console.log(`🗑️ CSV eliminado del sistema: ${filePath}`);
 
-      // Limpiar el CSV después de subirlo
-      fs.unlinkSync(filePath);
-      console.log(`🗑️ CSV eliminado del sistema: ${filePath}`);
     }
   },
 };
