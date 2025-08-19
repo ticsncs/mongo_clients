@@ -1,6 +1,8 @@
 import axios from 'axios';
 import FormData from 'form-data'; // 👈 importante: esta es la de Node.js, no del navegador
 import dotenv from 'dotenv';
+import path from 'path';
+
 dotenv.config();
 
 interface UploadCSVParams {
@@ -30,10 +32,10 @@ export const uploadCSVFile = async ({
     console.log('Nombre de archivo:', fileName);
 
     // Log tamaño del archivo si es posible
-    if (file.path) {
+    if ('path' in file && typeof (file as any).path === 'string') {
       const fs = require('fs');
       try {
-        const stats = fs.statSync(file.path);
+        const stats = fs.statSync((file as any).path);
         console.log('Tamaño del archivo a enviar:', stats.size, 'bytes');
       } catch (err) {
         console.warn('No se pudo obtener el tamaño del archivo:', err.message);
