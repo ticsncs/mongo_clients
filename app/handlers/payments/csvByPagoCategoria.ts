@@ -66,27 +66,22 @@ export const csvByPagoCategoria = {
       {
         csv: efectivoGracia,
         title: 'PAGO PERIODO DE GRACIA EFECTIVO',
-        category: 3,
+        category: "PAGO PERIODO DE GRACIA EFECTIVO",
       },
       {
         csv: digitalesPuntual,
         title: 'PAGO PUNTUAL MEDIOS DIGITALES',
-        category: 4,
+        category: "PAGO PUNTUAL MEDIOS DIGITALES",
       },
       {
         csv: digitalesGracia,
         title: 'PAGO PERIODO DE GRACIA MEDIOS DIGITALES',
-        category: 5,
-      },
-      {
-        csv: transferencia,
-        title: 'PAGO TRANSFERENCIA',
-        category: 6,
+        category: "PAGO PERIODO DE GRACIA MEDIOS DIGITALES",
       },
       {
         csv: debito,
         title: 'PAGO POR DÉBITO BANCARIO',
-        category: 7,
+        category: "PAGO POR DÉBITO BANCARIO",
       },
     ];
 
