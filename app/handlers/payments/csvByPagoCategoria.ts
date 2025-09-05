@@ -61,7 +61,7 @@ export const csvByPagoCategoria = {
       {
         csv: efectivoPuntual,
         title: 'Pagos Puntuales en Efectivo',
-        category: "PAGO PUNTUAL EN EFECTIVO",
+        category: "PAGO PUNTUAL EFECTIVO",
       },
       {
         csv: efectivoGracia,
