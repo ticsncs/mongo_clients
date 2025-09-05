@@ -71,7 +71,7 @@ export const csvByPagoCategoria = {
       {
         csv: digitalesPuntual,
         title: 'PAGO PUNTUAL MEDIOS DIGITALES',
-        category: "PAGO PUNTUAL MEDIO DIGITALES",
+        category: "PAGO PUNTUAL MEDIOS DIGITALES",
       },
       {
         csv: digitalesGracia,
