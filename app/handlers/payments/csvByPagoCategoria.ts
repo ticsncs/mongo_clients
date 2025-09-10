@@ -94,6 +94,8 @@ export const csvByPagoCategoria = {
       const fileName = path.basename(filePath);
       const fileStream = fs.createReadStream(filePath);
 
+      console.log(`\n📄 Preparando para subir CSV: ${fileName}`);
+
       await uploadCSVFile({ title, category, file: fileStream, fileName });
 
       console.log(`📤 CSV subido correctamente: ${title}`);
