@@ -81,9 +81,11 @@ export class PaymentCsvStrategy implements ICsvStrategy {
     }
   }
   async flush(context: Map<string, any>): Promise<void> {
-  // Al finalizar todo el procesamiento de pagos
-  await csvByPagoCategoria.flushAll();
+    console.log('\n🔄 Iniciando flush de CSVs...');
+    // Al finalizar todo el procesamiento de pagos
+    await csvByPagoCategoria.flushAll();
 
-  console.log('✅ Todos los CSVs de pagos generados y enviados correctamente.');
+    console.log('✅ Todos los CSVs de pagos generados y enviados correctamente.');
+    console.log('🏁 Fin del proceso completo\n');
 }
 }

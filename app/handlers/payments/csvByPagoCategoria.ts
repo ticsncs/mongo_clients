@@ -57,6 +57,7 @@ export const csvByPagoCategoria = {
   },
 
   async flushAll(): Promise<void> {
+    console.log('\n📦 Iniciando envío de todos los CSVs...');
     const uploads = [
       {
         csv: efectivoPuntual,
