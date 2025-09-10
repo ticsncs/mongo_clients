@@ -87,16 +87,13 @@ export const csvByPagoCategoria = {
       },
     ];
 
-    console.log(`\n📅 Fecha de los CSVs: ${fecha}`)
     ;
     for (const { csv, title, category } of uploads) {
       console.log('\n----------------------------------------');
-      console.log(`🔍 Procesando categoría: ${category}`);
       if (!csv) {
         console.log('⚠️ No hay CSV para esta categoría, saltando...');
         continue;
       }
-      console.log('✅ CSV encontrado:', csv);
 
 
       await csv.finalize();
