@@ -58,29 +58,30 @@ export const csvByPagoCategoria = {
 
   async flushAll(): Promise<void> {
     console.log('\n📦 Iniciando envío de todos los CSVs...');
+    // Usamos los getters para obtener las instancias actualizadas
     const uploads = [
       {
-        csv: efectivoPuntual,
+        csv: this.efectivo_puntual,
         title: 'Pagos Puntuales en Efectivo',
         category: "PAGO PUNTUAL EFECTIVO",
       },
       {
-        csv: efectivoGracia,
+        csv: this.efectivo_gracia,
         title: 'PAGO PERIODO DE GRACIA EFECTIVO',
         category: "PAGO PERIODO DE GRACIA EFECTIVO",
       },
       {
-        csv: digitalesPuntual,
+        csv: this.digitales_puntual,
         title: 'PAGO PUNTUAL MEDIOS DIGITALES',
         category: "PAGO PUNTUAL MEDIOS DIGITALES",
       },
       {
-        csv: digitalesGracia,
+        csv: this.digitales_gracia,
         title: 'PAGO PERIODO DE GRACIA MEDIOS DIGITALES',
         category: "PAGO PERIODO DE GRACIA MEDIO DIGITALES",
       },
       {
-        csv: debito,
+        csv: this.debito,
         title: 'PAGO POR DÉBITO BANCARIO',
         category: "PAGO POR DÉBITO BANCARIO",
       },
@@ -89,11 +90,13 @@ export const csvByPagoCategoria = {
     console.log(`\n📅 Fecha de los CSVs: ${fecha}`)
     ;
     for (const { csv, title, category } of uploads) {
-      console.log('----------------------------------------');
+      console.log('\n----------------------------------------');
       console.log(`🔍 Procesando categoría: ${category}`);
-      console.log('scriptor: csvByPagoCategoria.flushAll', csv);
-      if (!csv) continue;
-      console.log('scriptor: csvByPagoCategoria.flushAll', csv);
+      if (!csv) {
+        console.log('⚠️ No hay CSV para esta categoría, saltando...');
+        continue;
+      }
+      console.log('✅ CSV encontrado:', csv);
 
 
       await csv.finalize();
