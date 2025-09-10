@@ -41,7 +41,7 @@ export class PaymentCsvStrategy implements ICsvStrategy {
     const existe = await PaymentModel.findOne({ contrato: contrato });
 
     if (existe) {
-      console.warn(`⚠️ Pago ya registrado para contrato ${contrato}. Se omite.`);
+      console.warn(`⚠️ Pago ya registrado para contrato ======= ${contrato}. Se omite.`);
       return;
     }
 

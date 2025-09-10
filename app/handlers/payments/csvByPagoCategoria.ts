@@ -91,7 +91,10 @@ export const csvByPagoCategoria = {
     for (const { csv, title, category } of uploads) {
       console.log('----------------------------------------');
       console.log(`🔍 Procesando categoría: ${category}`);
+      console.log('scriptor: csvByPagoCategoria.flushAll', csv);
       if (!csv) continue;
+      console.log('scriptor: csvByPagoCategoria.flushAll', csv);
+
 
       await csv.finalize();
       const filePath = csv.getPath();
