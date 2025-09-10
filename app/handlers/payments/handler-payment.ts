@@ -4,6 +4,7 @@
     import { normalizar } from '../../utils/normalize';
     import { obtenerCategoria } from './class-category-payment';
     import { csvByPagoCategoria } from './csvByPagoCategoria';
+    import { PaymentModel } from '../../models/payment.model';
 
 
     const pagosEfectivo = ['efectivo', 'tarjeta', 'efectivo dt 001-010', 'efectivo jel 002-002', 'efectivo jcr 001-220'].map(normalizar);
@@ -52,10 +53,20 @@
 
                 //console.log("💵 Pago realizado en efectivo por:", tipoPagoNormalizado);
                 if (fechaPago < inicioGracia) {
+                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
+                    if (existe) {
+                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
+                        return null;
+                    }
                     await handlePagoPuntual(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.efectivo_puntual.addRow(contrato.codigo)
                     return { contrato: contrato.codigo, categoria: `${categoriaBase} PUNTUALES`, puntos: 0 };
                 } else if (fechaPago > inicioGracia && fechaPago <= fechaCorte) {
+                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
+                    if (existe) {
+                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
+                        return null;
+                    }
                     await handlePagoGracia(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.efectivo_gracia.addRow(contrato.codigo)
                     return { contrato: contrato.codigo, categoria: `${categoriaBase} PERIODO DE GRACIA`, puntos: 0 };
@@ -66,10 +77,20 @@
             } else if (pagosMediosDigitales.includes(tipoPagoNormalizado)) {
                 // console.log("💵 Pago realizado por medio digital por:", tipoPagoNormalizado);
                 if (fechaPago < inicioGracia) {
+                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
+                    if (existe) {
+                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
+                        return null;
+                    }
                     await handlePagoPuntual(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.digitales_puntual.addRow(contrato.codigo)
-                    return { contrato: contrato.codigo, categoria: `${categoriaBase} PERIODO DE GRACIA`, puntos: 0 };
+                    return { contrato: contrato.codigo, categoria: `${categoriaBase} PUNTUALES`, puntos: 0 };
                 } else if (fechaPago > inicioGracia && fechaPago < fechaCorte) {
+                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
+                    if (existe) {
+                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
+                        return null;
+                    }
                     await handlePagoGracia(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.digitales_gracia.addRow(contrato.codigo)
                     return { contrato: contrato.codigo, categoria: `${categoriaBase} PERIODO DE GRACIA`, puntos: 0 };
@@ -77,12 +98,13 @@
                     console.warn(`⚠️ Pago fuera de plazo para contrato ${contrato.codigo}`);
                     return null;
                 }
-            } else if (pagosTransferencia.includes(tipoPagoNormalizado)) {
-                //console.log("💵 Pago realizado por Transferencia ");
-                await csvByPagoCategoria.transferencia.addRow(contrato.codigo); // ✅ Agrega al CSV
-                return { contrato: contrato.codigo, categoria: `${categoriaBase} `, puntos: 0 };
             } else if (pagosDebitoBancario.includes(tipoPagoNormalizado)) {
                 //console.log("💵 Pago realizado por Débito Bancario");}
+                const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
+                if (existe) {
+                    console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
+                    return null;
+                }
                 await csvByPagoCategoria.debito.addRow(contrato.codigo)
                 return { contrato: contrato.codigo, categoria: `${categoriaBase}`, puntos: 0 };
             } else {
