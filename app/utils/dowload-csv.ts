@@ -80,6 +80,49 @@ const row = values.map(this.escapeValue).join(';');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     return `${baseName}-${timestamp}.csv`;
   }
+
+  /**
+   * Elimina el archivo CSV
+   */
+  public async cleanup(): Promise<void> {
+    try {
+      if (fs.existsSync(this.filePath)) {
+        await fs.promises.unlink(this.filePath);
+        console.log(`🗑️ Archivo CSV eliminado: ${this.filePath}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error al eliminar el archivo CSV ${this.filePath}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Limpia todos los archivos CSV en el directorio de exportación que sean más antiguos que la fecha proporcionada
+   */
+  public static async cleanupOldFiles(olderThanHours: number = 24): Promise<void> {
+    const outputDir = path.resolve('public', 'exports');
+    try {
+      if (!fs.existsSync(outputDir)) return;
+
+      const files = await fs.promises.readdir(outputDir);
+      const now = new Date();
+
+      for (const file of files) {
+        if (!file.endsWith('.csv')) continue;
+
+        const filePath = path.join(outputDir, file);
+        const stats = await fs.promises.stat(filePath);
+        const fileAge = (now.getTime() - stats.mtime.getTime()) / (1000 * 60 * 60); // edad en horas
+
+        if (fileAge > olderThanHours) {
+          await fs.promises.unlink(filePath);
+          console.log(`🗑️ Archivo CSV antiguo eliminado: ${file}`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error al limpiar archivos CSV antiguos:', error);
+    }
+  }
 }
 
 export default CSVDownloader;

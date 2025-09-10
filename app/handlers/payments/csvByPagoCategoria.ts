@@ -98,6 +98,24 @@ export const csvByPagoCategoria = {
 
       await csv.finalize();
       const filePath = csv.getPath();
+      
+      try {
+        if (fs.existsSync(filePath)) {
+          const fileStream = fs.createReadStream(filePath);
+          await uploadCSVFile({
+            title,
+            category,
+            file: fileStream,
+            fileName: path.basename(filePath)
+          });
+          
+          // Eliminar el archivo después de enviarlo
+          await fs.promises.unlink(filePath);
+          console.log(`🗑️ Archivo CSV eliminado después de enviar: ${filePath}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error al procesar/eliminar el archivo ${filePath}:`, error);
+      }
       const fileName = path.basename(filePath);
       const fileStream = fs.createReadStream(filePath);
 

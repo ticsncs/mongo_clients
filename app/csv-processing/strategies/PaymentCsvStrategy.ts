@@ -82,10 +82,23 @@ export class PaymentCsvStrategy implements ICsvStrategy {
   }
   async flush(context: Map<string, any>): Promise<void> {
     console.log('\n🔄 Iniciando flush de CSVs...');
-    // Al finalizar todo el procesamiento de pagos
-    await csvByPagoCategoria.flushAll();
+    
+    try {
+      // Al finalizar todo el procesamiento de pagos
+      await csvByPagoCategoria.flushAll();
 
-    console.log('✅ Todos los CSVs de pagos generados y enviados correctamente.');
+      // Limpiar el archivo CSV temporal
+      await this.csv.cleanup();
+
+      // Limpiar archivos CSV antiguos (más de 24 horas)
+      await CSVDownloader.cleanupOldFiles(24);
+
+      console.log('✅ Todos los CSVs de pagos generados, enviados y limpiados correctamente.');
+    } catch (error) {
+      console.error('❌ Error durante el flush de CSVs:', error);
+      throw error;
+    }
+    
     console.log('🏁 Fin del proceso completo\n');
 }
 }
