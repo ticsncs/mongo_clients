@@ -19,17 +19,20 @@ export const uploadCSVFile = async ({
   fileName,
 }: UploadCSVParams): Promise<any> => {
   try {
+    console.log('🚀 Iniciando uploadCSVFile para:', fileName);
+    
     const formData = new FormData();
     formData.append('title', title);
     formData.append('category', String(category));
     formData.append('csv_file', file, fileName);
 
     // Log campos del formData (no el contenido del archivo, pero sí los nombres)
-    console.log("Hora del envio:", new Date().toISOString());
-    console.log('Campos en formData:', formData.getBuffer ? Object.keys(formData.getHeaders()) : 'No disponible');
-    console.log('Título:', title);
-    console.log('Categoría:', category);
-    console.log('Nombre de archivo:', fileName);
+    console.log("\n📤 DETALLES DEL ENVÍO:");
+    console.log("⏰ Hora del envio:", new Date().toISOString());
+    console.log('📋 Campos en formData:', formData.getBuffer ? Object.keys(formData.getHeaders()) : 'No disponible');
+    console.log('📝 Título:', title);
+    console.log('🏷️ Categoría:', category);
+    console.log('📁 Nombre de archivo:', fileName);
     // Imprime el contenido del archivo CSV (solo si es un stream de archivo)
     if ('path' in file && typeof (file as any).path === 'string') {
       try {
@@ -48,12 +51,15 @@ export const uploadCSVFile = async ({
           if ('path' in file && typeof (file as any).path === 'string') {
             const fs = require('fs');
             try {
+              console.log('\n📊 VALIDACIÓN DE ARCHIVO:');
+              console.log('📂 Ruta del archivo:', (file as any).path);
               const content = fs.readFileSync((file as any).path, 'utf8');
               const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
               if (lines.length > 1) {
                 fileHasMoreThanOneRow = true;
               }
-              console.log('Cantidad de filas en el archivo:', lines.length);
+              console.log('📈 Cantidad de filas en el archivo:', lines.length);
+              console.log('📄 Primeras 3 líneas:', lines.slice(0, 3));
             } catch (err) {
               console.warn('No se pudo leer el archivo para validar filas:', err.message);
             }
@@ -62,10 +68,12 @@ export const uploadCSVFile = async ({
           }
 
           if (!fileHasMoreThanOneRow) {
-            console.warn('El archivo no tiene más de una fila. No se enviará la petición.');
+            console.warn('⚠️ ADVERTENCIA: El archivo no tiene más de una fila. No se enviará la petición.');
+            console.log('❌ Abortando envío para:', fileName);
             return { error: 'El archivo no tiene más de una fila. No se envió la petición.' };
           }
 
+          console.log('\n📡 PREPARANDO ENVÍO:');
     const baseUrl = process.env.API_APP_NETTPLUS;
     const endpoint = `${baseUrl}/clients/masspointsload/`;
     console.log('Enviando petición a:', endpoint);
