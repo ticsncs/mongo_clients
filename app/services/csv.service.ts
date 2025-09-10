@@ -154,4 +154,28 @@ export class CsvService {
     });
 
   }
+  async deleteFile(filePath: string): Promise<void> {
+    try {
+      // Verificar si el archivo existe antes de intentar eliminarlo
+      if (!fs.existsSync(filePath)) {
+        console.warn(`⚠️ El archivo ${filePath} no existe o ya fue eliminado`);
+        return;
+      }
+
+      // Verificar si tenemos permisos para eliminar el archivo
+      try {
+        await fs.promises.access(filePath, fs.constants.W_OK);
+      } catch (error) {
+        console.error(`❌ No hay permisos para eliminar el archivo ${filePath}`);
+        throw error;
+      }
+
+      // Eliminar el archivo
+      await fs.promises.unlink(filePath);
+      console.log(`🗑️ Archivo eliminado exitosamente: ${filePath}`);
+    } catch (error) {
+      console.error(`❌ Error al eliminar archivo ${filePath}:`, error);
+      throw error; // Propagar el error para que el controlador pueda manejarlo
+    }
+  }
 }

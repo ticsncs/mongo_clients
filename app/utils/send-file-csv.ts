@@ -3,6 +3,7 @@ import FormData from 'form-data'; // 👈 importante: esta es la de Node.js, no 
 import dotenv from 'dotenv';
 import fs from 'fs'; // Para leer el contenido del archivo CSV
 dotenv.config();
+import { CsvService } from '../services/csv.service';
 
 interface UploadCSVParams {
   title: string;
@@ -10,6 +11,7 @@ interface UploadCSVParams {
   file: NodeJS.ReadableStream; // ⬅ compatible con fs.createReadStream()
   fileName: string; // ⬅ necesario para que el servidor reconozca el archivo
 }
+
 
 
 export const uploadCSVFile = async ({
@@ -59,7 +61,6 @@ export const uploadCSVFile = async ({
                 fileHasMoreThanOneRow = true;
               }
               console.log('📈 Cantidad de filas en el archivo:', lines.length);
-              console.log('📄 Primeras 3 líneas:', lines.slice(0, 3));
             } catch (err) {
               console.warn('No se pudo leer el archivo para validar filas:', err.message);
             }
@@ -100,6 +101,7 @@ export const uploadCSVFile = async ({
         headers: response.headers,
         data: response.data,
       });
+
     } catch (err) {
       if (err.response) {
         console.error('Error en la respuesta del servidor:', {
@@ -113,6 +115,9 @@ export const uploadCSVFile = async ({
       }
       throw err;
     }
+
+    //Eliminar el archivo después de enviarlo
+    await new CsvService().deleteFile((file as any).path);
 
     return response.data;
   } catch (error: any) {

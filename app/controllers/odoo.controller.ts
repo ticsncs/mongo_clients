@@ -10,12 +10,11 @@ export const greet = (req: Request, res: Response): void => {
   successResponse(res, 200, `Hello ${name.toString}!`);
 };
 
-
+const csvService = new CsvService(); // Instancia del servicio CSV
 export const odooContractCsv = async (req: Request, res: Response): Promise<void> => {
   try {
     const startTime = Date.now(); // Start timing
 
-    const csvService = new CsvService(); // Instancia del servicio CSV
 
 
     const file = req.file; // multer coloca el archivo aquí
@@ -36,6 +35,14 @@ export const odooContractCsv = async (req: Request, res: Response): Promise<void
     successResponse(res, 200, ('✅ Archivo CSV procesado y guardado correctamente '), {
       executionTime: `${executionTime} ms`,
     });
+
+    //Eliminar el archivo después de procesarlo
+    try {
+      if (file)
+        await csvService.deleteFile(file.path);
+    } catch (error) {
+      console.error('❌ Error al eliminar archivo CSV:', error);
+    }
 
   } catch (error) {
     console.error('❌ Error al enviar archivo a la API:', error);
@@ -66,6 +73,14 @@ export const odooBillingCsv = async (req: Request, res: Response): Promise<void>
       executionTime: `${executionTime} ms`
     });
 
+    //Eliminar el archivo después de procesarlo
+    try {
+      if (file)
+        await csvService.deleteFile(file.path);
+    } catch (error) {
+      console.error('❌ Error al eliminar archivo CSV:', error);
+    } 
+
   } catch (error) {
     console.error('❌ Error al procesar CSV de facturación:', error);
     errorResponse(res, 500, '❌ Error al procesar CSV de facturación', error);
@@ -94,6 +109,14 @@ export const odooPaymentCsv = async (req: Request, res: Response): Promise<void>
     successResponse(res, 200, '✅ Payments CSV procesada correctamente', {
       executionTime: `${executionTime} ms`
     });
+
+    //Eliminar el archivo después de procesarlo
+    try {
+      if (file)
+        await csvService.deleteFile(file.path);
+    } catch (error) {
+      console.error('❌ Error al eliminar archivo CSV:', error);
+    }
 
   } catch (error) {
     console.error('❌ Error al procesar CSV de facturación:', error);
