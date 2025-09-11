@@ -57,6 +57,8 @@ export const uploadCSVFile = async ({
         console.log('📂 Ruta del archivo:', (file as any).path);
         const content = fs.readFileSync((file as any).path, 'utf8');
         const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
+        //Imprimir contenido del archivo
+        console.log('Contenido del archivo para conteo de filas:\n', content);
         if (lines.length > 1) {
           fileHasMoreThanOneRow = true;
         }
@@ -71,8 +73,7 @@ export const uploadCSVFile = async ({
     if (!fileHasMoreThanOneRow) {
       console.warn('⚠️ ADVERTENCIA: El archivo no tiene más de una fila. No se enviará la petición.');
       console.log('❌ Abortando envío para:', fileName);
-      await new CsvService().deleteFile((file as any).path);
-      return { error: 'El archivo no tiene más de una fila. No se envió la petición.' };
+      return { error: 'El archivo no tiene más de una fila. No se envió la petición.', shouldDelete: true };
     }
 
     console.log('\n📡 PREPARANDO ENVÍO:');
@@ -117,10 +118,11 @@ export const uploadCSVFile = async ({
       throw err;
     }
 
+    
     //Eliminar el archivo después de enviarlo
     await new CsvService().deleteFile((file as any).path);
 
-    return response.data;
+    //return response.data;
   } catch (error: any) {
     console.error('❌ Error al subir el archivo:', error.message);
     throw error;

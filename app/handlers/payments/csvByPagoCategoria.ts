@@ -101,27 +101,37 @@ export const csvByPagoCategoria = {
       
       try {
         if (fs.existsSync(filePath)) {
+          console.log(`\n📄 Preparando para subir CSV: ${path.basename(filePath)}`);
           const fileStream = fs.createReadStream(filePath);
-          await uploadCSVFile({
+          
+          // Primero subir el archivo
+          const response = await uploadCSVFile({
             title,
             category,
             file: fileStream,
             fileName: path.basename(filePath)
           });
+
           
-          // Eliminar el archivo después de enviarlo
-          await fs.promises.unlink(filePath);
-          console.log(`🗑️ Archivo CSV eliminado después de enviar: ${filePath}`);
+          // Eliminar el archivo solo si la subida fue exitosa o si se debe eliminar por validación
+          if (response.shouldDelete || !response.error) {
+            try {
+              await fs.promises.unlink(filePath);
+              console.log(`🗑️ Archivo CSV eliminado después de enviar: ${filePath}`);
+            } catch (unlinkError) {
+              if (unlinkError.code !== 'ENOENT') {
+                console.error(`❌ Error al eliminar el archivo ${filePath}:`, unlinkError);
+              }
+            }
+          }
+
+          if (!response.error) {
+            console.log(`📤 CSV subido correctamente: ${title}`);
+          }
         }
       } catch (error) {
-        console.error(`❌ Error al procesar/eliminar el archivo ${filePath}:`, error);
+        console.error(`❌ Error al procesar archivo ${filePath}:`, error);
       }
-      const fileName = path.basename(filePath);
-      const fileStream = fs.createReadStream(filePath);
-
-      console.log(`\n📄 Preparando para subir CSV: ${fileName}`);
-
-      await uploadCSVFile({ title, category, file: fileStream, fileName });
 
       console.log(`📤 CSV subido correctamente: ${title}`);
     }

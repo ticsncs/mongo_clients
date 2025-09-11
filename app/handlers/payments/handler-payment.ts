@@ -53,20 +53,10 @@
 
                 //console.log("💵 Pago realizado en efectivo por:", tipoPagoNormalizado);
                 if (fechaPago < inicioGracia) {
-                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
-                    if (existe) {
-                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
-                        return null;
-                    }
                     await handlePagoPuntual(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.efectivo_puntual.addRow(contrato.codigo)
                     return { contrato: contrato.codigo, categoria: `${categoriaBase} PUNTUALES`, puntos: 0 };
-                } else if (fechaPago > inicioGracia && fechaPago <= fechaCorte) {
-                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
-                    if (existe) {
-                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
-                        return null;
-                    }
+                } else if (fechaPago >= inicioGracia && fechaPago <= fechaCorte) {
                     await handlePagoGracia(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.efectivo_gracia.addRow(contrato.codigo)
                     return { contrato: contrato.codigo, categoria: `${categoriaBase} PERIODO DE GRACIA`, puntos: 0 };
@@ -77,20 +67,10 @@
             } else if (pagosMediosDigitales.includes(tipoPagoNormalizado)) {
                 // console.log("💵 Pago realizado por medio digital por:", tipoPagoNormalizado);
                 if (fechaPago < inicioGracia) {
-                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
-                    if (existe) {
-                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
-                        return null;
-                    }
                     await handlePagoPuntual(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.digitales_puntual.addRow(contrato.codigo)
                     return { contrato: contrato.codigo, categoria: `${categoriaBase} PUNTUALES`, puntos: 0 };
-                } else if (fechaPago > inicioGracia && fechaPago < fechaCorte) {
-                    const existe = await PaymentModel.findOne({ contrato: contrato.codigo });
-                    if (existe) {
-                        console.warn(`⚠️ Pago ya registrado para contrato ${contrato.codigo}. Se omite.`);
-                        return null;
-                    }
+                } else if (fechaPago >= inicioGracia && fechaPago <= fechaCorte) {
                     await handlePagoGracia(contrato, fechaPago, categoriaBase);
                     await csvByPagoCategoria.digitales_gracia.addRow(contrato.codigo)
                     return { contrato: contrato.codigo, categoria: `${categoriaBase} PERIODO DE GRACIA`, puntos: 0 };

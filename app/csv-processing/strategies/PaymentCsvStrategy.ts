@@ -37,34 +37,33 @@ export class PaymentCsvStrategy implements ICsvStrategy {
       return;
     }
 
-    // ✅ Antes de crear, validamos que no exista ya un Payment para este contrato
-    const existe = await PaymentModel.findOne({ contrato: contrato });
-
-    if (existe) {
-      console.warn(`⚠️ Pago ya registrado para contrato ======= ${contrato}. Se omite.`);
-      return;
-    }
-
     try {
-      // ✅ Ahora sí creamos el nuevo Payment
-      await PaymentModel.create({
+      // ✅ Buscamos el contrato primero
+      const contratoDb = await ContratoModel.findOne({ codigo: contrato });
+      if (!contratoDb) {
+        console.warn(`⚠️ Contrato no encontrado en la base de datos: ${contrato}`);
+        return;
+      }
+
+      // ✅ Verificamos si ya existe el pago
+      const pagoExistente = await PaymentModel.findOne({ contrato: contrato });
+      if (pagoExistente) {
+        console.warn(`⚠️ Pago ya registrado para contrato ${contrato}. Omitiendo procesamiento.`);
+        return;
+      }
+
+      // ✅ Si no existe, creamos el nuevo pago
+      const nuevoPago = await PaymentModel.create({
         contrato: contrato,
         fechaPago: fechaPago,
         diario: normalizar(diario),
         cliente: cliente,
-        importe: parseFloat(importe), // lo guardamos como número
+        importe: parseFloat(importe),
         estado: estado
       });
 
-      // ✅ Procesamos el pago para ver si es puntual o en gracia
-      const contratoDb = await ContratoModel.findOne({ codigo: contrato });
-      const pagoDb = await PaymentModel.findOne({ contrato: contrato });
-      if (!contratoDb) {
-            console.warn(`⚠️ Contrato no encoontrado en la base de datos: ${contrato}`);
-            return;
-        }
-
-        const resultado = await procesarPago(contratoDb, fechaPago, pagoDb.diario);
+      // ✅ Procesamos el nuevo pago
+      const resultado = await procesarPago(contratoDb, fechaPago, nuevoPago.diario);
 
         if (resultado) {
             this.csv.addRow(
@@ -82,23 +81,10 @@ export class PaymentCsvStrategy implements ICsvStrategy {
   }
   async flush(context: Map<string, any>): Promise<void> {
     console.log('\n🔄 Iniciando flush de CSVs...');
-    
-    try {
-      // Al finalizar todo el procesamiento de pagos
-      await csvByPagoCategoria.flushAll();
+    // Al finalizar todo el procesamiento de pagos
+    await csvByPagoCategoria.flushAll();
 
-      // Limpiar el archivo CSV temporal
-      await this.csv.cleanup();
-
-      // Limpiar archivos CSV antiguos (más de 24 horas)
-      await CSVDownloader.cleanupOldFiles(24);
-
-      console.log('✅ Todos los CSVs de pagos generados, enviados y limpiados correctamente.');
-    } catch (error) {
-      console.error('❌ Error durante el flush de CSVs:', error);
-      throw error;
-    }
-    
+    console.log('✅ Todos los CSVs de pagos generados y enviados correctamente.');
     console.log('🏁 Fin del proceso completo\n');
 }
 }
