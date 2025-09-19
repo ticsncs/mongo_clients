@@ -16,6 +16,7 @@ export interface IContrato extends Document {
 
 const ContratoSchema: Schema = new Schema({
   codigo: { type: String, required: true, unique: true },
+  idContrato: { type: String, required: true, unique: true },
   plan_internet: { type: String, required: true },
   estado_ct: { type: String, required: true },
   tipo_plan: {

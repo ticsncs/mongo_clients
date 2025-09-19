@@ -86,6 +86,7 @@ export class CsvService {
                 fecha_corte: row['Fecha de Corte']?.trim(),
                 servicio_internet: row['Servicio Internet']?.trim(),
                 monto_deuda: row['Monto Deuda']?.trim(),
+                idContrato: row['ID']?.trim(),
                 clienteId: cliente._id,
               };
 
